@@ -80,9 +80,11 @@ installer (`winget install JRSoftware.InnoSetup` first). The resulting
 `.github/workflows/windows-build.yml` runs the same script on a GitHub-hosted
 Windows runner: full test suite (Sonify tested against the bundled FFmpeg),
 PyInstaller build, packaged self-test / contact sheet / GUI smoke test,
-installer. Pushing a tag such as `v1.0.0` publishes a **GitHub Release** with
+installer. Every push to `main` runs it; a successful run creates or updates
+the **GitHub Release** `v<version>` (version from `pyproject.toml`) with
 `GlitchLab-1.0.0-setup-win64.exe`, `GlitchLab-1.0.0-win64.zip` and the
-packaged self-test report. Download links then have the form
+packaged self-test report. The run's result and log are also written to the
+`build-status` branch. Download links then have the form
 `https://github.com/<owner>/<repo>/releases/latest/download/GlitchLab-1.0.0-setup-win64.exe`.
 The build can also be started by hand from the repository's *Actions* tab
 (*windows-build → Run workflow*); that produces a downloadable workflow artifact.

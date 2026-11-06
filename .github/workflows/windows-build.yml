@@ -1,20 +1,27 @@
 name: windows-build
 
 # Builds the Windows 10/11 x64 package on a GitHub-hosted Windows runner,
-# runs the full test suite there, verifies the packaged app, and - for tags
-# like v1.0.0 - publishes a GitHub Release with the installer and zip.
+# runs the full test suite there (Sonify against the bundled FFmpeg),
+# verifies the packaged app, builds the installer and publishes/updates the
+# GitHub Release "v<version>" (version from pyproject.toml) with the
+# installer, the portable zip and the packaged self-test report.
+# A short result + build log is also written to the "build-status" branch.
 on:
-  workflow_dispatch:
   push:
-    tags: ["v*"]
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
+concurrency:
+  group: windows-build
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: windows-latest
-    timeout-minutes: 90
+    timeout-minutes: 100
     steps:
       - uses: actions/checkout@v4
 
@@ -25,11 +32,15 @@ jobs:
           architecture: x64
 
       - name: Build, test and verify the package
+        id: build
         shell: pwsh
-        run: >
-          ./packaging/build_windows.ps1
-          -Python "${{ steps.setup.outputs.python-path }}"
-          -FetchFFmpeg -Installer -Headless
+        run: |
+          $ErrorActionPreference = 'Continue'
+          pwsh -NoProfile -ExecutionPolicy Bypass -File ./packaging/build_windows.ps1 -Python "${{ steps.setup.outputs.python-path }}" -FetchFFmpeg -Installer -Headless 2>&1 |
+            Tee-Object -FilePath build-log.txt
+          $code = $LASTEXITCODE
+          "build script exit code: $code"
+          exit $code
 
       - name: Upload build outputs
         if: always()
@@ -43,19 +54,52 @@ jobs:
             dist/selftest-report.txt
             dist/contact_sheet.png
             dist/smoke.png
+            build-log.txt
 
       - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        id: release
+        if: success()
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $tag = "${{ github.ref_name }}"
+          $ErrorActionPreference = 'Continue'
+          $version = (Select-String -Path pyproject.toml -Pattern '^version = "(.+)"').Matches[0].Groups[1].Value
+          $tag = "v$version"
           $files = @(Get-ChildItem dist -File | Where-Object { $_.Name -match '^GlitchLab-.*(setup-win64\.exe|win64\.zip)$|^selftest-report\.txt$' } | ForEach-Object { $_.FullName })
+          if ($files.Count -lt 3) { throw "Expected installer, zip and self-test report in dist/, found: $($files -join ', ')" }
           gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) {
             gh release upload $tag @files --clobber
+            if ($LASTEXITCODE -ne 0) { throw "Uploading release assets failed" }
+            gh release edit $tag --notes-file packaging/RELEASE_NOTES.md --title "Glitch Lab $tag"
           } else {
-            gh release create $tag @files --title "Glitch Lab $tag" --notes-file packaging/RELEASE_NOTES.md
+            gh release create $tag @files --target $env:GITHUB_SHA --title "Glitch Lab $tag" --notes-file packaging/RELEASE_NOTES.md --latest
           }
           if ($LASTEXITCODE -ne 0) { throw "Publishing the release failed" }
+          "Release: $env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/releases/tag/$tag"
+
+      - name: Report status to the build-status branch
+        if: always()
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $out = Join-Path $env:RUNNER_TEMP "build-status"
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          @(
+            "commit: $env:GITHUB_SHA",
+            "build: ${{ steps.build.outcome }}",
+            "release: ${{ steps.release.outcome }}",
+            "run: $env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+          ) | Set-Content (Join-Path $out "STATUS.txt")
+          if (Test-Path build-log.txt) { Get-Content build-log.txt -Tail 6000 | Set-Content (Join-Path $out "build-log.txt") }
+          if (Test-Path dist/selftest-report.txt) { Copy-Item dist/selftest-report.txt $out }
+          Set-Location $out
+          git init -q -b build-status
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Build status for $env:GITHUB_SHA"
+          git push -f "https://x-access-token:$env:GH_TOKEN@github.com/$env:GITHUB_REPOSITORY.git" build-status
