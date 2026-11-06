@@ -1,0 +1,10 @@
+.venv/
+.venv-win/
+build/
+dist/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+packaging/ffmpeg/*.exe
+packaging/ffmpeg/*.txt

@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "glitchlab"
+version = "1.0.0"
+description = "Glitch Lab - still-image glitch art desktop application"
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+license = { text = "MIT" }
+dependencies = [
+    "PySide6==6.10.3",
+    "numpy==2.3.5",
+    "pillow==12.3.0",
+    "opencv-python-headless==4.13.0.92",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==8.4.2", "pyinstaller==6.19.0"]
+
+[project.scripts]
+glitchlab-cli = "glitchlab.cli:main"
+
+[project.gui-scripts]
+glitchlab = "glitchlab.app:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+glitchlab = ["resources/*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+markers = [
+    "ffmpeg: needs a working FFmpeg executable",
+    "ui: needs Qt (runs with the offscreen platform)",
+]

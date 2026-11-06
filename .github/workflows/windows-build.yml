@@ -1,0 +1,61 @@
+name: windows-build
+
+# Builds the Windows 10/11 x64 package on a GitHub-hosted Windows runner,
+# runs the full test suite there, verifies the packaged app, and - for tags
+# like v1.0.0 - publishes a GitHub Release with the installer and zip.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          architecture: x64
+
+      - name: Build, test and verify the package
+        shell: pwsh
+        run: >
+          ./packaging/build_windows.ps1
+          -Python "${{ steps.setup.outputs.python-path }}"
+          -FetchFFmpeg -Installer -Headless
+
+      - name: Upload build outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: GlitchLab-win64
+          if-no-files-found: warn
+          path: |
+            dist/GlitchLab-*-setup-win64.exe
+            dist/GlitchLab-*-win64.zip
+            dist/selftest-report.txt
+            dist/contact_sheet.png
+            dist/smoke.png
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $files = @(Get-ChildItem dist -File | Where-Object { $_.Name -match '^GlitchLab-.*(setup-win64\.exe|win64\.zip)$|^selftest-report\.txt$' } | ForEach-Object { $_.FullName })
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag @files --clobber
+          } else {
+            gh release create $tag @files --title "Glitch Lab $tag" --notes-file packaging/RELEASE_NOTES.md
+          }
+          if ($LASTEXITCODE -ne 0) { throw "Publishing the release failed" }
