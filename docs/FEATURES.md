@@ -9,8 +9,12 @@ Legend
 | ⚠️ | Implemented but **untested** in this release (cannot be exercised on the build host) |
 | ❌ | Not implemented / known limitation |
 
-Build host: Linux x86-64, Python 3.13, FFmpeg 6.1.1. **No Windows machine was
-available**: Windows-specific items are marked ⚠️.
+Build hosts: Linux x86-64 (Python 3.13, FFmpeg 6.1.1) and the GitHub Actions
+Windows runner (Windows Server 2025, Python 3.13.17, bundled FFmpeg 8.1.3):
+332 tests passed there, 3 Linux-only tests skipped
+([run 42212319268](https://github.com/Khartuts/glitch-lab/actions/runs/42212319268)).
+The GUI was exercised headlessly (offscreen) on Windows; an interactive session
+on a Windows 10/11 desktop has not been tested.
 
 ## Application & UI
 
@@ -137,11 +141,11 @@ available**: Windows-specific items are marked ⚠️.
 | Contact sheet (every effect + 8 presets on 5 fixtures, failures labelled) | ✅ | Help menu or `glitchlab-cli --contact-sheet`; sample in `docs/contact_sheet.png` |
 | Headless self-test (`--selftest`) and GUI smoke test (`--smoke-test`) | ✅ | |
 | PyInstaller onedir spec (GUI + CLI executables, FFmpeg folder, docs, licences) | ✅ on Linux | built and verified on Linux from a scrubbed environment |
-| **Windows** package build (`packaging\build_windows.ps1`) | ⚠️ | not run: no Windows host |
-| Windows installer (Inno Setup `packaging\installer.iss`) | ⚠️ | not built or tested |
-| GitHub Actions Windows workflow | ⚠️ | not run |
-| `fetch_ffmpeg.ps1` (BtbN LGPL 8.1, SHA-256 check) | ⚠️ | not run; executing a downloaded FFmpeg build was not permitted on the build host |
-| FFmpeg 7.x/8.x compatibility | ⚠️ | runtime A-law round-trip probe guards it; only 6.1.1 executed here |
+| **Windows** package build (`packaging\build_windows.ps1`) | ✅ | GitHub Actions: tests, packaged self-test (incl. Sonify), contact sheet, headless GUI smoke test |
+| Windows installer (Inno Setup `packaging\installer.iss`) | ⚠️ | built in CI; installing/uninstalling not tested |
+| GitHub Actions Windows workflow (build + release) | ✅ | publishes the v1.0.0 release |
+| `fetch_ffmpeg.ps1` (BtbN LGPL 8.1, SHA-256 check) | ✅ | run in CI (FFmpeg n8.1.3) |
+| FFmpeg 6.x/8.x compatibility | ✅ | 6.1.1 (Linux) and 8.1.3 (Windows); 7.x untested |
 
 ## Known limitations
 
@@ -149,4 +153,4 @@ available**: Windows-specific items are marked ⚠️.
 * ❌ Error Diffusion Trails propagate error to the next line only (same-line term omitted to keep it vectorised); classic Floyd–Steinberg lives in Palette Damage.
 * ❌ Reduced previews of byte-level effects (HEX, Sonify, pixel sorting, block grids) approximate the export; this is labelled in the UI.
 * ❌ No video, animation, GIF export, camera, audio playback or music features (out of scope by design).
-* Packaged size is ~400 MB on Linux (Qt + OpenCV); Windows size not measured.
+* Package size: Windows installer 113 MB, portable zip 172 MB (Qt + OpenCV).
