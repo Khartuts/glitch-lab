@@ -15,8 +15,15 @@ Dev venv: `.venv` (Python 3.13, `requirements-dev.txt`, package installed with `
 - [x] M3: effects 7-20, performance work (prefix cache, Gray-Scott 5x, mosaic bleed 1.8x),
       contact sheet, self-test, PyInstaller spec, Windows/Linux build scripts, installer script, CI workflow, docs
 
-## Not done on this host (needs Windows)
+## Windows build & download link (next step)
 
-1. Run `packaging\build_windows.ps1 -FetchFFmpeg [-Installer]` on Windows 10/11 x64 with Python 3.13.
-2. Confirm dist\selftest-report.txt says PASSED and the FFmpeg line is OK (FFmpeg 8.1 LGPL).
-3. Manual checklist in README.md ("Manual verification checklist for a Windows build").
+The repo is committed locally (`main`, tag `v1.0.0`). No GitHub account is linked to the session yet.
+Once the user connects GitHub and names an empty repository `owner/repo`:
+1. attach it with add_repo (push access), `git remote add origin ...`, push `main` and tag `v1.0.0`;
+2. `.github/workflows/windows-build.yml` builds on windows-latest, runs all tests (Sonify against the
+   bundled FFmpeg 8.1 LGPL), verifies the packaged app, builds the installer, and publishes the release;
+3. download links: `https://github.com/<owner>/<repo>/releases/latest/download/GlitchLab-1.0.0-setup-win64.exe`
+   and `.../GlitchLab-1.0.0-win64.zip`;
+4. if the Windows run fails, fix and re-tag (or re-run via workflow_dispatch).
+
+Fallback without GitHub: on a Windows PC with Python 3.13 x64, run `packaging\build_windows.bat -Installer`.
