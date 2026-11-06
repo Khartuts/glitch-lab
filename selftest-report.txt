@@ -1,0 +1,47 @@
+Glitch Lab 1.0.0 self-test — Windows-2025Server-10.0.26100-SP0 — Python 3.13.17
+Executable: D:\a\glitch-lab\glitch-lab\dist\GlitchLab\glitchlab-cli.exe  frozen=True
+  glitchlab: 1.0.0
+  python: 3.13.17
+  platform: Windows-2025Server-10.0.26100-SP0
+  numpy: 2.3.5
+  pillow: 12.3.0
+  opencv: 4.13.0
+  ffmpeg: ffmpeg version n8.1.3-34-ga35157abb9-20261105 Copyright (c) 2000-2026 the FFmpeg developers (bundled with Glitch Lab: D:\a\glitch-lab\glitch-lab\dist\GlitchLab\ffmpeg\ffmpeg.exe)
+
+PASS  image import/export  (0.06s) PNG/JPEG/WEBP
+PASS  effect bitplane  (0.00s) 04c5e68c0f63
+PASS  effect block_scramble  (0.00s) e8256928902f
+PASS  effect cellular  (0.08s) 6ee70f8536ea
+PASS  effect channel_shift  (0.00s) ddc063e845b9
+PASS  effect cross_mod  (0.00s) be73f4f3118d
+PASS  effect displace_map  (0.01s) c8678cbd71a2
+PASS  effect error_trails  (0.01s) 02e57054f15e
+PASS  effect feedback  (0.01s) 9351ff7fa8da
+PASS  effect hex_corrupt  (0.00s) d9345ae88166
+PASS  effect jpeg_decay  (0.01s) 16ce04c2b8a5
+PASS  effect mosaic_bleed  (0.01s) 186b537dba78
+PASS  effect palette  (0.00s) 71e63733fade
+PASS  effect pixel_sort  (0.01s) 649cfc2c0748
+PASS  effect reaction_diffusion  (1.62s) 57bfa1d33e54
+PASS  effect reinterpret  (0.00s) 553733eb3d70
+PASS  effect row_drift  (0.00s) e30cd7ff3242
+PASS  effect scanline_tear  (0.00s) 5ee663316d2b
+PASS  effect slitscan  (0.00s) 9644ccf478be
+PASS  effect sonify  (0.13s) 6b5e05d3507f
+PASS  effect spectral  (0.01s) 6671f41d97f2
+PASS  preset Broken Broadcast  (0.01s) 57ef0954ff21
+PASS  preset Acid Chromatic  (0.01s) 25a6b8c92c55
+PASS  preset Industrial Decay  (0.01s) 74f498424749
+PASS  preset Corrupted Memory  (0.01s) bfd7f7bbf14c
+PASS  preset Spectral Ghost  (0.01s) 49cb61028e40
+PASS  preset Scanner Failure  (0.01s) 721d6ab0b36e
+PASS  preset Digital Rust  (0.63s) 4bfd21bebed0
+PASS  preset Photocopier Meltdown  (0.02s) 48389c471802
+PASS  preset Tape Snag  (0.00s) 0621c23714fa
+PASS  preset Sorted Sunset  (0.00s) 6c045a48a0b5
+PASS  preset Tile Riot  (0.00s) 70a977484865
+PASS  project save/load reproduces render  (0.03s) 
+
+FFmpeg: OK — ffmpeg version n8.1.3-34-ga35157abb9-20261105 Copyright (c) 2000-2026 the FFmpeg developers (bundled with Glitch Lab: D:\a\glitch-lab\glitch-lab\dist\GlitchLab\ffmpeg\ffmpeg.exe)
+
+RESULT: PASSED

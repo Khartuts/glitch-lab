@@ -1,0 +1,763 @@
+
+=== Python environment ===
+3.13.17 (tags/v3.13.17:64e080d, Oct 21 2026, 14:08:53) [MSC v.1944 64 bit (AMD64)]
+Requirement already satisfied: pip in .\.venv-win\Lib\site-packages (26.2.2)
+Collecting pip
+  Downloading pip-26.3-py3-none-any.whl.metadata (4.6 kB)
+Downloading pip-26.3-py3-none-any.whl (2.0 MB)
+   ---------------------------------------- 2.0/2.0 MB 10.2 MB/s  0:00:00
+Installing collected packages: pip
+  Attempting uninstall: pip
+    Found existing installation: pip 26.2.2
+    Uninstalling pip-26.2.2:
+      Successfully uninstalled pip-26.2.2
+Successfully installed pip-26.3
+Collecting PySide6==6.10.3 (from -r D:\a\glitch-lab\glitch-lab\requirements.txt (line 2))
+  Downloading pyside6-6.10.3-cp39-abi3-win_amd64.whl.metadata (5.5 kB)
+Collecting numpy==2.3.5 (from -r D:\a\glitch-lab\glitch-lab\requirements.txt (line 3))
+  Downloading numpy-2.3.5-cp313-cp313-win_amd64.whl.metadata (60 kB)
+Collecting pillow==12.3.0 (from -r D:\a\glitch-lab\glitch-lab\requirements.txt (line 4))
+  Downloading pillow-12.3.0-cp313-cp313-win_amd64.whl.metadata (9.3 kB)
+Collecting opencv-python-headless==4.13.0.92 (from -r D:\a\glitch-lab\glitch-lab\requirements.txt (line 5))
+  Downloading opencv_python_headless-4.13.0.92-cp37-abi3-win_amd64.whl.metadata (20 kB)
+Collecting pytest==8.4.2 (from -r requirements-dev.txt (line 3))
+  Downloading pytest-8.4.2-py3-none-any.whl.metadata (7.7 kB)
+Collecting pyinstaller==6.19.0 (from -r requirements-dev.txt (line 4))
+  Downloading pyinstaller-6.19.0-py3-none-win_amd64.whl.metadata (8.5 kB)
+Collecting shiboken6==6.10.3 (from PySide6==6.10.3->-r D:\a\glitch-lab\glitch-lab\requirements.txt (line 2))
+  Downloading shiboken6-6.10.3-cp39-abi3-win_amd64.whl.metadata (2.6 kB)
+Collecting PySide6_Essentials==6.10.3 (from PySide6==6.10.3->-r D:\a\glitch-lab\glitch-lab\requirements.txt (line 2))
+  Downloading pyside6_essentials-6.10.3-cp39-abi3-win_amd64.whl.metadata (3.9 kB)
+Collecting PySide6_Addons==6.10.3 (from PySide6==6.10.3->-r D:\a\glitch-lab\glitch-lab\requirements.txt (line 2))
+  Downloading pyside6_addons-6.10.3-cp39-abi3-win_amd64.whl.metadata (4.2 kB)
+Collecting colorama>=0.4 (from pytest==8.4.2->-r requirements-dev.txt (line 3))
+  Downloading colorama-0.4.6-py2.py3-none-any.whl.metadata (17 kB)
+Collecting iniconfig>=1 (from pytest==8.4.2->-r requirements-dev.txt (line 3))
+  Downloading iniconfig-2.3.1-py3-none-any.whl.metadata (2.8 kB)
+Collecting packaging>=20 (from pytest==8.4.2->-r requirements-dev.txt (line 3))
+  Downloading packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+Collecting pluggy<2,>=1.5 (from pytest==8.4.2->-r requirements-dev.txt (line 3))
+  Downloading pluggy-1.7.0-py3-none-any.whl.metadata (5.0 kB)
+Collecting pygments>=2.7.2 (from pytest==8.4.2->-r requirements-dev.txt (line 3))
+  Downloading pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+Collecting altgraph (from pyinstaller==6.19.0->-r requirements-dev.txt (line 4))
+  Downloading altgraph-0.17.5-py2.py3-none-any.whl.metadata (7.5 kB)
+Collecting pefile>=2022.5.30 (from pyinstaller==6.19.0->-r requirements-dev.txt (line 4))
+  Downloading pefile-2024.8.26-py3-none-any.whl.metadata (1.4 kB)
+Collecting pyinstaller-hooks-contrib>=2026.0 (from pyinstaller==6.19.0->-r requirements-dev.txt (line 4))
+  Downloading pyinstaller_hooks_contrib-2026.9-py3-none-any.whl.metadata (16 kB)
+Collecting pywin32-ctypes>=0.2.1 (from pyinstaller==6.19.0->-r requirements-dev.txt (line 4))
+  Downloading pywin32_ctypes-0.2.3-py3-none-any.whl.metadata (3.9 kB)
+Collecting setuptools>=42.0.0 (from pyinstaller==6.19.0->-r requirements-dev.txt (line 4))
+  Downloading setuptools-84.2.1-py3-none-any.whl.metadata (6.6 kB)
+Downloading pyside6-6.10.3-cp39-abi3-win_amd64.whl (569 kB)
+   ---------------------------------------- 569.7/569.7 kB 8.1 MB/s  0:00:00
+Downloading numpy-2.3.5-cp313-cp313-win_amd64.whl (12.8 MB)
+   ---------------------------------------- 12.8/12.8 MB 96.5 MB/s  0:00:00
+Downloading pillow-12.3.0-cp313-cp313-win_amd64.whl (7.2 MB)
+   ---------------------------------------- 7.2/7.2 MB 103.4 MB/s  0:00:00
+Downloading opencv_python_headless-4.13.0.92-cp37-abi3-win_amd64.whl (40.1 MB)
+   ---------------------------------------- 40.1/40.1 MB 74.6 MB/s  0:00:00
+Downloading pytest-8.4.2-py3-none-any.whl (365 kB)
+Downloading pyinstaller-6.19.0-py3-none-win_amd64.whl (1.4 MB)
+   ---------------------------------------- 1.4/1.4 MB 25.0 MB/s  0:00:00
+Downloading pyside6_addons-6.10.3-cp39-abi3-win_amd64.whl (164.7 MB)
+   ---------------------------------------- 164.7/164.7 MB 58.1 MB/s  0:00:02
+Downloading pyside6_essentials-6.10.3-cp39-abi3-win_amd64.whl (74.6 MB)
+   ---------------------------------------- 74.6/74.6 MB 66.1 MB/s  0:00:01
+Downloading shiboken6-6.10.3-cp39-abi3-win_amd64.whl (1.2 MB)
+   ---------------------------------------- 1.2/1.2 MB 31.4 MB/s  0:00:00
+Downloading pluggy-1.7.0-py3-none-any.whl (27 kB)
+Downloading colorama-0.4.6-py2.py3-none-any.whl (25 kB)
+Downloading iniconfig-2.3.1-py3-none-any.whl (7.6 kB)
+Downloading packaging-26.3-py3-none-any.whl (129 kB)
+Downloading pefile-2024.8.26-py3-none-any.whl (74 kB)
+Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
+   ---------------------------------------- 1.3/1.3 MB 27.0 MB/s  0:00:00
+Downloading pyinstaller_hooks_contrib-2026.9-py3-none-any.whl (462 kB)
+Downloading pywin32_ctypes-0.2.3-py3-none-any.whl (30 kB)
+Downloading setuptools-84.2.1-py3-none-any.whl (876 kB)
+   ---------------------------------------- 876.3/876.3 kB 15.7 MB/s  0:00:00
+Downloading altgraph-0.17.5-py2.py3-none-any.whl (21 kB)
+Installing collected packages: altgraph, shiboken6, setuptools, pywin32-ctypes, pygments, pluggy, pillow, pefile, packaging, numpy, iniconfig, colorama, pytest, PySide6_Essentials, pyinstaller-hooks-contrib, opencv-python-headless, PySide6_Addons, pyinstaller, PySide6
+
+Successfully installed PySide6-6.10.3 PySide6_Addons-6.10.3 PySide6_Essentials-6.10.3 altgraph-0.17.5 colorama-0.4.6 iniconfig-2.3.1 numpy-2.3.5 opencv-python-headless-4.13.0.92 packaging-26.3 pefile-2024.8.26 pillow-12.3.0 pluggy-1.7.0 pygments-2.21.0 pyinstaller-6.19.0 pyinstaller-hooks-contrib-2026.9 pytest-8.4.2 pywin32-ctypes-0.2.3 setuptools-84.2.1 shiboken6-6.10.3
+Obtaining file:///D:/a/glitch-lab/glitch-lab
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  C:\Users\runneradmin\AppData\Local\Temp\pip-build-env-lmn449n3\overlay\Lib\site-packages\setuptools\config\_apply_pyprojecttoml.py:82: BuildBackendWarning: `project.license` as a TOML table is deprecated
+  !!
+  
+          ********************************************************************************
+          Please use a simple string containing a SPDX expression for `project.license`. You can also use `project.license-files`. (Both options available on setuptools>=77.0.0).
+  
+          By 2027-Feb-18, you need to update your project and remove deprecated calls
+          or your builds will no longer be supported.
+  
+          See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+          ********************************************************************************
+  
+  !!
+    corresp(dist, value, root_dir)
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+  C:\Users\runneradmin\AppData\Local\Temp\pip-build-env-lmn449n3\overlay\Lib\site-packages\setuptools\config\_apply_pyprojecttoml.py:82: BuildBackendWarning: `project.license` as a TOML table is deprecated
+  !!
+  
+          ********************************************************************************
+          Please use a simple string containing a SPDX expression for `project.license`. You can also use `project.license-files`. (Both options available on setuptools>=77.0.0).
+  
+          By 2027-Feb-18, you need to update your project and remove deprecated calls
+          or your builds will no longer be supported.
+  
+          See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+          ********************************************************************************
+  
+  !!
+    corresp(dist, value, root_dir)
+Building wheels for collected packages: glitchlab
+  Building editable for glitchlab (pyproject.toml): started
+  Building editable for glitchlab (pyproject.toml): finished with status 'done'
+  C:\Users\runneradmin\AppData\Local\Temp\pip-build-env-lmn449n3\overlay\Lib\site-packages\setuptools\config\_apply_pyprojecttoml.py:82: BuildBackendWarning: `project.license` as a TOML table is deprecated
+  !!
+  
+          ********************************************************************************
+          Please use a simple string containing a SPDX expression for `project.license`. You can also use `project.license-files`. (Both options available on setuptools>=77.0.0).
+  
+          By 2027-Feb-18, you need to update your project and remove deprecated calls
+          or your builds will no longer be supported.
+  
+          See https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license for details.
+          ********************************************************************************
+  
+  !!
+    corresp(dist, value, root_dir)
+  Created wheel for glitchlab: filename=glitchlab-1.0.0-0.editable-py3-none-any.whl size=4863 sha256=5759026586eb25732c4a0c5099a105aab55c795be1bf429316176c730982f4bb
+  Stored in directory: C:\Users\runneradmin\AppData\Local\Temp\pip-ephem-wheel-cache-eqcpdkkc\wheels\c6\c2\58\2e6eae10985ed0cc9858a8f73d79ec00e3dc6d6457675f9576
+Successfully built glitchlab
+Installing collected packages: glitchlab
+Successfully installed glitchlab-1.0.0
+
+=== FFmpeg ===
+Downloading https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-win64-lgpl-8.1.zip
+SHA-256 OK: 44ab22eb38df10879de788c88856d97568d5df98ffe995752157cc61edb4b78f
+ffmpeg version n8.1.3-34-ga35157abb9-20261105 Copyright (c) 2000-2026 the FFmpeg developers
+ffmpeg.exe placed in D:\a\glitch-lab\glitch-lab\packaging\ffmpeg
+ffmpeg version n8.1.3-34-ga35157abb9-20261105 Copyright (c) 2000-2026 the FFmpeg developers
+built with gcc 16.2.0 (crosstool-NG 1.29.0.7_b1a94f6)
+configuration: --prefix=/ffbuild/prefix --pkg-config-flags=--static --pkg-config=pkg-config --cross-prefix=x86_64-w64-mingw32- --arch=x86_64 --target-os=mingw32 --enable-version3 --disable-debug --disable-w32threads --enable-pthreads --enable-iconv --enable-zlib --enable-libxml2 --enable-libvmaf --enable-fontconfig --enable-libharfbuzz --enable-libfreetype --enable-libfribidi --enable-lcms2 --enable-vulkan --enable-libshaderc --enable-libdav1d --enable-libvorbis --enable-librav1e --enable-librsvg --disable-libxcb --disable-xlib --disable-libpulse --enable-gmp --enable-lzma --enable-liblcevc-dec --enable-opencl --enable-amf --enable-libaom --disable-avisynth --enable-chromaprint --disable-libdavs2 --disable-libdvdread --disable-libdvdnav --disable-libfdk-aac --enable-ffnvcodec --enable-cuda-llvm --disable-frei0r --enable-libgme --enable-libkvazaar --enable-libaribb24 --enable-libaribcaption --enable-libass --enable-libbluray --enable-libjxl --enable-libmp3lame --enable-libopus --enable-libplacebo --enable-librist --enable-libssh --enable-libtheora --enable-libvpx --enable-libwebp --enable-libzmq --enable-lv2 --enable-libvpl --enable-openal --enable-liboapv --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenh264 --enable-libopenjpeg --enable-libopenmpt --disable-librubberband --enable-schannel --enable-sdl2 --enable-libsnappy --enable-libsoxr --enable-libsrt --enable-libsvtav1 --enable-libtwolame --enable-libuavs3d --disable-libdrm --enable-vaapi --enable-vapoursynth --disable-libvidstab --enable-libvvenc --disable-whisper --disable-libx264 --disable-libx265 --disable-libxavs2 --disable-libxvid --enable-libzimg --enable-libzvbi --extra-cflags=-DLIBTWOLAME_STATIC --extra-cxxflags= --extra-libs=-lgomp --extra-ldflags=-pthread --extra-ldexeflags= --cc=x86_64-w64-mingw32-gcc --cxx=x86_64-w64-mingw32-g++ --ar=x86_64-w64-mingw32-gcc-ar --ranlib=x86_64-w64-mingw32-gcc-ranlib --nm=x86_64-w64-mingw32-gcc-nm --extra-version=20261105
+libavutil      60. 26.103 / 60. 26.103
+libavcodec     62. 28.103 / 62. 28.103
+libavformat    62. 12.103 / 62. 12.103
+libavdevice    62.  3.103 / 62.  3.103
+libavfilter    11. 14.103 / 11. 14.103
+libswscale      9.  5.103 /  9.  5.103
+libswresample   6.  3.103 /  6.  3.103
+
+Exiting with exit code 0
+
+=== Automated tests ===
+........................................................................ [ 21%]
+........................................................................ [ 42%]
+..........................................................s............. [ 64%]
+..................................s.........s........................... [ 85%]
+...............................................                          [100%]
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_io.py:237: POSIX permissions
+SKIPPED [1] tests\test_m2.py:293: shell script stub
+SKIPPED [1] tests\test_m2.py:455: shell script stub
+332 passed, 3 skipped in 37.45s
+
+=== Icon ===
+icon written to D:\a\glitch-lab\glitch-lab\src\glitchlab\resources
+
+=== PyInstaller ===
+213 INFO: PyInstaller: 6.19.0, contrib hooks: 2026.9
+213 INFO: Python: 3.13.17
+238 INFO: Platform: Windows-2025Server-10.0.26100-SP0
+238 INFO: Python environment: D:\a\glitch-lab\glitch-lab\.venv-win
+248 INFO: Removing temporary files and cleaning cache in C:\Users\runneradmin\AppData\Local\pyinstaller
+613 INFO: Module search paths (PYTHONPATH):
+['D:\\a\\glitch-lab\\glitch-lab',
+ 'C:\\hostedtoolcache\\windows\\Python\\3.13.17\\x64\\python313.zip',
+ 'C:\\hostedtoolcache\\windows\\Python\\3.13.17\\x64\\DLLs',
+ 'C:\\hostedtoolcache\\windows\\Python\\3.13.17\\x64\\Lib',
+ 'C:\\hostedtoolcache\\windows\\Python\\3.13.17\\x64',
+ 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win',
+ 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages',
+ 'D:\\a\\glitch-lab\\glitch-lab\\src',
+ 'D:\\a\\glitch-lab\\glitch-lab\\packaging',
+ 'D:\\a\\glitch-lab\\glitch-lab\\src']
+974 INFO: Appending 'datas' from .spec
+974 INFO: checking Analysis
+974 INFO: Building Analysis because Analysis-00.toc is non existent
+974 INFO: Looking for Python shared library...
+974 INFO: Using Python shared library: C:\hostedtoolcache\windows\Python\3.13.17\x64\python313.dll
+975 INFO: Running Analysis Analysis-00.toc
+975 INFO: Target bytecode optimization level: 0
+975 INFO: Initializing module dependency graph...
+976 INFO: Initializing module graph hook caches...
+991 INFO: Analyzing modules for base_library.zip ...
+2047 INFO: Processing standard module hook 'hook-heapq.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+2181 INFO: Processing standard module hook 'hook-encodings.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+4489 INFO: Processing standard module hook 'hook-pickle.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+6361 INFO: Caching module dependency graph...
+6402 INFO: Analyzing D:\a\glitch-lab\glitch-lab\packaging\launch_gui.py
+6475 INFO: Processing standard module hook 'hook-multiprocessing.util.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+6748 INFO: Processing standard module hook 'hook-xml.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+7145 INFO: Processing standard module hook 'hook-sysconfig.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+7151 INFO: Processing standard module hook 'hook-_ctypes.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+7242 INFO: Processing standard module hook 'hook-numpy.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+8330 INFO: Processing standard module hook 'hook-platform.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+8383 INFO: Processing standard module hook 'hook-difflib.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+9808 INFO: Processing pre-safe-import-module hook 'hook-typing_extensions.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+9809 INFO: SetuptoolsInfo: initializing cached setuptools info...
+11291 INFO: Processing standard module hook 'hook-cv2.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+11766 INFO: Processing standard module hook 'hook-PIL.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+11900 INFO: Processing standard module hook 'hook-PIL.Image.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+12281 INFO: Processing standard module hook 'hook-xml.etree.cElementTree.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+12523 INFO: Processing standard module hook 'hook-PIL.ImageFilter.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+13303 INFO: Processing standard module hook 'hook-PySide6.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+13475 INFO: Processing standard module hook 'hook-shiboken6.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+13705 INFO: Processing standard module hook 'hook-PySide6.QtNetwork.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+16884 INFO: Processing standard module hook 'hook-PySide6.QtCore.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+21263 INFO: Processing standard module hook 'hook-PySide6.QtGui.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+39951 INFO: Processing standard module hook 'hook-PySide6.QtWidgets.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+43478 INFO: Analyzing hidden import 'glitchlab.__main__'
+43479 INFO: Processing module hooks (post-graph stage)...
+43867 INFO: Processing standard module hook 'hook-PIL.SpiderImagePlugin.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+43993 INFO: Performing binary vs. data reclassification (130 entries)
+44021 INFO: Looking for ctypes DLLs
+44059 INFO: Analyzing run-time hooks ...
+44062 INFO: Including run-time hook 'pyi_rth_inspect.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+44065 INFO: Including run-time hook 'pyi_rth_pkgutil.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+44068 INFO: Including run-time hook 'pyi_rth_pyside6.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+44070 INFO: Processing pre-find-module-path hook 'hook-_pyi_rth_utils.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks\\pre_find_module_path'
+44072 INFO: Processing standard module hook 'hook-_pyi_rth_utils.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+44076 INFO: Including run-time hook 'pyi_rth_multiprocessing.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+44090 INFO: Creating base_library.zip...
+44114 INFO: Looking for dynamic libraries
+44655 INFO: Extra DLL search directories (AddDllDirectory): ['D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\shiboken6', 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\numpy.libs', 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\cv2\\../../x64/vc17/bin']
+44655 INFO: Extra DLL search directories (PATH): ['D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\cv2\\../../x64/vc17/bin', 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PySide6']
+46548 INFO: Warnings written to D:\a\glitch-lab\glitch-lab\build\glitchlab\warn-glitchlab.txt
+46600 INFO: Graph cross-reference written to D:\a\glitch-lab\glitch-lab\build\glitchlab\xref-glitchlab.html
+46620 INFO: Module search paths (PYTHONPATH):
+['D:\\a\\glitch-lab\\glitch-lab',
+ 'C:\\hostedtoolcache\\windows\\Python\\3.13.17\\x64\\python313.zip',
+ 'C:\\hostedtoolcache\\windows\\Python\\3.13.17\\x64\\DLLs',
+ 'C:\\hostedtoolcache\\windows\\Python\\3.13.17\\x64\\Lib',
+ 'C:\\hostedtoolcache\\windows\\Python\\3.13.17\\x64',
+ 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win',
+ 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages',
+ 'D:\\a\\glitch-lab\\glitch-lab\\src',
+ 'D:\\a\\glitch-lab\\glitch-lab\\packaging',
+ 'D:\\a\\glitch-lab\\glitch-lab\\src',
+ 'D:\\a\\glitch-lab\\glitch-lab\\packaging',
+ 'D:\\a\\glitch-lab\\glitch-lab\\src']
+46940 INFO: Appending 'datas' from .spec
+46940 INFO: checking Analysis
+46940 INFO: Building Analysis because Analysis-01.toc is non existent
+46940 INFO: Looking for Python shared library...
+46940 INFO: Using Python shared library: C:\hostedtoolcache\windows\Python\3.13.17\x64\python313.dll
+46940 INFO: Running Analysis Analysis-01.toc
+46941 INFO: Target bytecode optimization level: 0
+46941 INFO: Reusing cached module dependency graph...
+46968 INFO: Initializing module graph hook caches...
+46983 INFO: Analyzing D:\a\glitch-lab\glitch-lab\packaging\launch_cli.py
+47030 INFO: Processing standard module hook 'hook-multiprocessing.util.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+47248 INFO: Processing standard module hook 'hook-xml.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+47356 INFO: Processing standard module hook 'hook-pickle.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+47424 INFO: Processing standard module hook 'hook-heapq.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+47621 INFO: Processing standard module hook 'hook-sysconfig.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+47626 INFO: Processing standard module hook 'hook-_ctypes.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+47697 INFO: Processing standard module hook 'hook-numpy.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+48774 INFO: Processing standard module hook 'hook-platform.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+48826 INFO: Processing standard module hook 'hook-difflib.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+50161 INFO: Processing pre-safe-import-module hook 'hook-typing_extensions.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+50982 INFO: Processing standard module hook 'hook-cv2.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+51449 INFO: Processing standard module hook 'hook-PIL.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+51587 INFO: Processing standard module hook 'hook-PIL.Image.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+51965 INFO: Processing standard module hook 'hook-xml.etree.cElementTree.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+52192 INFO: Processing standard module hook 'hook-PIL.ImageFilter.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+52941 INFO: Analyzing hidden import 'glitchlab.__main__'
+52955 INFO: Processing standard module hook 'hook-PySide6.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+52958 INFO: Processing standard module hook 'hook-shiboken6.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+53181 INFO: Processing standard module hook 'hook-PySide6.QtNetwork.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+54435 INFO: Processing standard module hook 'hook-PySide6.QtCore.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+55782 INFO: Processing standard module hook 'hook-PySide6.QtGui.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+57280 INFO: Processing standard module hook 'hook-PySide6.QtWidgets.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+57791 INFO: Processing module hooks (post-graph stage)...
+57830 INFO: Processing standard module hook 'hook-encodings.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+58424 INFO: Processing standard module hook 'hook-PIL.SpiderImagePlugin.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+58551 INFO: Performing binary vs. data reclassification (130 entries)
+58579 INFO: Looking for ctypes DLLs
+58617 INFO: Analyzing run-time hooks ...
+58620 INFO: Including run-time hook 'pyi_rth_inspect.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+58623 INFO: Including run-time hook 'pyi_rth_pkgutil.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+58625 INFO: Including run-time hook 'pyi_rth_pyside6.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+58628 INFO: Processing pre-find-module-path hook 'hook-_pyi_rth_utils.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks\\pre_find_module_path'
+58629 INFO: Processing standard module hook 'hook-_pyi_rth_utils.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks'
+58632 INFO: Including run-time hook 'pyi_rth_multiprocessing.py' from 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+58645 INFO: Creating base_library.zip...
+58669 INFO: Looking for dynamic libraries
+59171 INFO: Extra DLL search directories (AddDllDirectory): ['D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\shiboken6', 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\numpy.libs', 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\cv2\\../../x64/vc17/bin']
+59171 INFO: Extra DLL search directories (PATH): ['D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\cv2\\../../x64/vc17/bin', 'D:\\a\\glitch-lab\\glitch-lab\\.venv-win\\Lib\\site-packages\\PySide6']
+60792 INFO: Warnings written to D:\a\glitch-lab\glitch-lab\build\glitchlab\warn-glitchlab.txt
+60844 INFO: Graph cross-reference written to D:\a\glitch-lab\glitch-lab\build\glitchlab\xref-glitchlab.html
+60874 INFO: checking PYZ
+60874 INFO: Building PYZ because PYZ-00.toc is non existent
+60874 INFO: Building PYZ (ZlibArchive) D:\a\glitch-lab\glitch-lab\build\glitchlab\PYZ-00.pyz
+61417 INFO: Building PYZ (ZlibArchive) D:\a\glitch-lab\glitch-lab\build\glitchlab\PYZ-00.pyz completed successfully.
+61434 INFO: checking PYZ
+61434 INFO: Building PYZ because PYZ-01.toc is non existent
+61434 INFO: Building PYZ (ZlibArchive) D:\a\glitch-lab\glitch-lab\build\glitchlab\PYZ-01.pyz
+61984 INFO: Building PYZ (ZlibArchive) D:\a\glitch-lab\glitch-lab\build\glitchlab\PYZ-01.pyz completed successfully.
+62004 INFO: checking PKG
+62004 INFO: Building PKG because PKG-00.toc is non existent
+62004 INFO: Building PKG (CArchive) GlitchLab.pkg
+62021 INFO: Building PKG (CArchive) GlitchLab.pkg completed successfully.
+62022 INFO: Bootloader D:\a\glitch-lab\glitch-lab\.venv-win\Lib\site-packages\PyInstaller\bootloader\Windows-64bit-intel\runw.exe
+62022 INFO: checking EXE
+62022 INFO: Building EXE because EXE-00.toc is non existent
+62022 INFO: Building EXE from EXE-00.toc
+62022 INFO: Copying bootloader EXE to D:\a\glitch-lab\glitch-lab\build\glitchlab\GlitchLab.exe
+62025 INFO: Copying icon to EXE
+62027 INFO: Copying version information to EXE
+62032 INFO: Copying 0 resources to EXE
+62032 INFO: Embedding manifest in EXE
+62033 INFO: Appending PKG archive to EXE
+62036 INFO: Fixing EXE headers
+62117 INFO: Building EXE from EXE-00.toc completed successfully.
+62120 INFO: checking PKG
+62120 INFO: Building PKG because PKG-01.toc is non existent
+62120 INFO: Building PKG (CArchive) glitchlab-cli.pkg
+62137 INFO: Building PKG (CArchive) glitchlab-cli.pkg completed successfully.
+62138 INFO: Bootloader D:\a\glitch-lab\glitch-lab\.venv-win\Lib\site-packages\PyInstaller\bootloader\Windows-64bit-intel\run.exe
+62138 INFO: checking EXE
+62138 INFO: Building EXE because EXE-01.toc is non existent
+62138 INFO: Building EXE from EXE-01.toc
+62138 INFO: Copying bootloader EXE to D:\a\glitch-lab\glitch-lab\build\glitchlab\glitchlab-cli.exe
+62141 INFO: Copying icon to EXE
+62143 INFO: Copying version information to EXE
+62145 INFO: Copying 0 resources to EXE
+62146 INFO: Embedding manifest in EXE
+62147 INFO: Appending PKG archive to EXE
+62151 INFO: Fixing EXE headers
+62231 INFO: Building EXE from EXE-01.toc completed successfully.
+62237 INFO: checking COLLECT
+62237 INFO: Building COLLECT because COLLECT-00.toc is non existent
+62237 INFO: Building COLLECT COLLECT-00.toc
+62619 INFO: Building COLLECT COLLECT-00.toc completed successfully.
+62626 INFO: Build complete! The results are available in: D:\a\glitch-lab\glitch-lab\dist
+
+=== Verify packaged application (independent of .venv-win) ===
+Glitch Lab 1.0.0
+{
+  "glitchlab": "1.0.0",
+  "python": "3.13.17",
+  "platform": "Windows-2025Server-10.0.26100-SP0",
+  "numpy": "2.3.5",
+  "pillow": "12.3.0",
+  "opencv": "4.13.0",
+  "ffmpeg": "ffmpeg version n8.1.3-34-ga35157abb9-20261105 Copyright (c) 2000-2026 the FFmpeg developers (bundled with Glitch Lab: D:\\a\\glitch-lab\\glitch-lab\\dist\\GlitchLab\\ffmpeg\\ffmpeg.exe)"
+}
+20 effects: bitplane, block_scramble, cellular, channel_shift, cross_mod, displace_map, error_trails, feedback, hex_corrupt, jpeg_decay, mosaic_bleed, palette, pixel_sort, reaction_diffusion, reinterpret, row_drift, scanline_tear, slitscan, sonify, spectral
+Self-test PASSED; report written to D:\a\glitch-lab\glitch-lab\dist\selftest-report.txt
+Glitch Lab 1.0.0 self-test — Windows-2025Server-10.0.26100-SP0 — Python 3.13.17
+Executable: D:\a\glitch-lab\glitch-lab\dist\GlitchLab\glitchlab-cli.exe  frozen=True
+  glitchlab: 1.0.0
+  python: 3.13.17
+  platform: Windows-2025Server-10.0.26100-SP0
+  numpy: 2.3.5
+  pillow: 12.3.0
+  opencv: 4.13.0
+  ffmpeg: ffmpeg version n8.1.3-34-ga35157abb9-20261105 Copyright (c) 2000-2026 the FFmpeg developers (bundled with Glitch Lab: D:\a\glitch-lab\glitch-lab\dist\GlitchLab\ffmpeg\ffmpeg.exe)
+
+PASS  image import/export  (0.06s) PNG/JPEG/WEBP
+PASS  effect bitplane  (0.00s) 04c5e68c0f63
+PASS  effect block_scramble  (0.00s) e8256928902f
+PASS  effect cellular  (0.08s) 6ee70f8536ea
+PASS  effect channel_shift  (0.00s) ddc063e845b9
+PASS  effect cross_mod  (0.00s) be73f4f3118d
+PASS  effect displace_map  (0.01s) c8678cbd71a2
+PASS  effect error_trails  (0.01s) 02e57054f15e
+PASS  effect feedback  (0.01s) 9351ff7fa8da
+PASS  effect hex_corrupt  (0.00s) d9345ae88166
+PASS  effect jpeg_decay  (0.01s) 16ce04c2b8a5
+PASS  effect mosaic_bleed  (0.01s) 186b537dba78
+PASS  effect palette  (0.00s) 71e63733fade
+PASS  effect pixel_sort  (0.01s) 649cfc2c0748
+PASS  effect reaction_diffusion  (1.62s) 57bfa1d33e54
+PASS  effect reinterpret  (0.00s) 553733eb3d70
+PASS  effect row_drift  (0.00s) e30cd7ff3242
+PASS  effect scanline_tear  (0.00s) 5ee663316d2b
+PASS  effect slitscan  (0.00s) 9644ccf478be
+PASS  effect sonify  (0.13s) 6b5e05d3507f
+PASS  effect spectral  (0.01s) 6671f41d97f2
+PASS  preset Broken Broadcast  (0.01s) 57ef0954ff21
+PASS  preset Acid Chromatic  (0.01s) 25a6b8c92c55
+PASS  preset Industrial Decay  (0.01s) 74f498424749
+PASS  preset Corrupted Memory  (0.01s) bfd7f7bbf14c
+PASS  preset Spectral Ghost  (0.01s) 49cb61028e40
+PASS  preset Scanner Failure  (0.01s) 721d6ab0b36e
+PASS  preset Digital Rust  (0.63s) 4bfd21bebed0
+PASS  preset Photocopier Meltdown  (0.02s) 48389c471802
+PASS  preset Tape Snag  (0.00s) 0621c23714fa
+PASS  preset Sorted Sunset  (0.00s) 6c045a48a0b5
+PASS  preset Tile Riot  (0.00s) 70a977484865
+PASS  project save/load reproduces render  (0.03s) 
+
+FFmpeg: OK — ffmpeg version n8.1.3-34-ga35157abb9-20261105 Copyright (c) 2000-2026 the FFmpeg developers (bundled with Glitch Lab: D:\a\glitch-lab\glitch-lab\dist\GlitchLab\ffmpeg\ffmpeg.exe)
+
+RESULT: PASSED
+Contact sheet written to D:\a\glitch-lab\glitch-lab\dist\contact_sheet.png (28 effects, 0 not ok)
+Packaged app verified: dist\selftest-report.txt, dist\contact_sheet.png, dist\smoke.png
+
+=== Archive ===
+Portable package: D:\a\glitch-lab\glitch-lab\dist\GlitchLab-1.0.0-win64.zip
+
+=== Installer (Inno Setup 6) ===
+Inno Setup 6 Command-Line Compiler
+Copyright (C) 1997-2026 Jordan Russell. All rights reserved.
+Portions Copyright (C) 2000-2026 Martijn Laan. All rights reserved.
+Portions Copyright (C) 2001-2004 Alex Yackimoff. All rights reserved.
+https://www.innosetup.com
+
+Compiler engine version: Inno Setup 6.7.1
+Non-commercial use only
+
+Preprocessing
+   Reading file: C:\Program Files (x86)\Inno Setup 6\ISPPBuiltins.iss
+Parsing [Setup] section, line 6
+Parsing [Setup] section, line 7
+Parsing [Setup] section, line 8
+Parsing [Setup] section, line 9
+Parsing [Setup] section, line 10
+Parsing [Setup] section, line 11
+Parsing [Setup] section, line 12
+Parsing [Setup] section, line 13
+Parsing [Setup] section, line 14
+Parsing [Setup] section, line 15
+Parsing [Setup] section, line 16
+Parsing [Setup] section, line 17
+Parsing [Setup] section, line 18
+Parsing [Setup] section, line 19
+Parsing [Setup] section, line 20
+Parsing [Setup] section, line 21
+Parsing [Setup] section, line 22
+Parsing [Setup] section, line 23
+Reading file (LicenseFile)
+Reading file (WizardImageFile)
+Reading file (WizardSmallImageFile)
+Preparing Setup program executable
+   Verification successful
+   Updating icons (Setup.e32)
+   Updating version info (Setup.e32)
+Determining language code pages
+   Reading file: C:\Program Files (x86)\Inno Setup 6\Default.isl
+   Messages in script file
+Reading default messages from Default.isl
+Parsing [LangOptions], [Messages], and [CustomMessages] sections
+   Reading file: C:\Program Files (x86)\Inno Setup 6\Default.isl
+   Messages in script file
+Reading [Code] section
+Parsing [Tasks] section, line 35
+Parsing [Icons] section, line 29
+Parsing [Icons] section, line 30
+Parsing [Icons] section, line 31
+Parsing [Icons] section, line 32
+Parsing [Registry] section, line 38
+Parsing [Registry] section, line 39
+Parsing [Registry] section, line 40
+Parsing [Registry] section, line 41
+Parsing [Run] section, line 44
+Parsing [Files] section, line 26
+Creating setup files
+   Verification successful
+   Updating icons (Setup.exe)
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\glitchlab-cli.exe
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\GlitchLab.exe
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\LICENSE
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\README.md
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\THIRD_PARTY_NOTICES.md
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\docs\FEATURES.md
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\docs\FFMPEG.md
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\docs\TECHNICAL.md
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\docs\USER_GUIDE.md
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\ffmpeg\ffmpeg.exe
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\ffmpeg\FFMPEG_LICENSE.txt
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\ffmpeg\FFMPEG_SOURCE.txt
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-console-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-datetime-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-debug-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-errorhandling-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-fibers-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-fibers-l1-1-1.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-file-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-file-l1-2-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-file-l2-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-handle-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-heap-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-interlocked-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-kernel32-legacy-l1-1-1.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-libraryloader-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-localization-l1-2-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-memory-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-namedpipe-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-processenvironment-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-processthreads-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-processthreads-l1-1-1.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-profile-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-rtlsupport-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-string-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-synch-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-synch-l1-2-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-sysinfo-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-sysinfo-l1-2-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-timezone-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-core-util-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-crt-conio-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-crt-convert-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-crt-environment-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-crt-filesystem-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-crt-heap-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-crt-locale-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-crt-math-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-crt-private-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-crt-process-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-crt-runtime-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-crt-stdio-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-crt-string-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-crt-time-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\api-ms-win-crt-utility-l1-1-0.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\base_library.zip
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\libcrypto-3-x64.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\libcrypto-3.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\libffi-8.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\libssl-3-x64.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\libssl-3.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\pyexpat.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\python3.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\python313.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\select.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\ucrtbase.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\unicodedata.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\VCRUNTIME140.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\VCRUNTIME140_1.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\_bz2.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\_ctypes.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\_decimal.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\_elementtree.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\_hashlib.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\_lzma.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\_multiprocessing.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\_queue.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\_socket.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\_ssl.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\_uuid.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\_wmi.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\cv2\config-3.py
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\cv2\config.py
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\cv2\cv2.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\cv2\load_config_py3.py
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\cv2\opencv_videoio_ffmpeg4130_64.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\cv2\version.py
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\cv2\__init__.py
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\cv2\data\__init__.py
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\cv2\gapi\__init__.py
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\cv2\mat_wrapper\__init__.py
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\cv2\misc\version.py
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\cv2\misc\__init__.py
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\cv2\typing\__init__.py
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\cv2\utils\__init__.py
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\glitchlab\resources\glitchlab.ico
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\glitchlab\resources\glitchlab.png
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy\fft\_pocketfft_umath.cp313-win_amd64.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy\linalg\_umath_linalg.cp313-win_amd64.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy\random\bit_generator.cp313-win_amd64.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy\random\mtrand.cp313-win_amd64.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy\random\_bounded_integers.cp313-win_amd64.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy\random\_common.cp313-win_amd64.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy\random\_generator.cp313-win_amd64.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy\random\_mt19937.cp313-win_amd64.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy\random\_pcg64.cp313-win_amd64.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy\random\_philox.cp313-win_amd64.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy\random\_sfc64.cp313-win_amd64.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy\_core\_multiarray_tests.cp313-win_amd64.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy\_core\_multiarray_umath.cp313-win_amd64.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy-2.3.5.dist-info\DELVEWHEEL
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy-2.3.5.dist-info\entry_points.txt
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy-2.3.5.dist-info\INSTALLER
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy-2.3.5.dist-info\LICENSE.txt
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy-2.3.5.dist-info\METADATA
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy-2.3.5.dist-info\RECORD
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy-2.3.5.dist-info\REQUESTED
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy-2.3.5.dist-info\WHEEL
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy.libs\libscipy_openblas64_-9e3e5a4229c1ca39f10dc82bba9e2b2b.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\numpy.libs\msvcp140-a4c2229bdc2a2a630acdc095b4d86008.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PIL\_avif.cp313-win_amd64.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PIL\_imaging.cp313-win_amd64.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PIL\_imagingcms.cp313-win_amd64.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PIL\_imagingft.cp313-win_amd64.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PIL\_imagingmath.cp313-win_amd64.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PIL\_imagingtk.cp313-win_amd64.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PIL\_webp.cp313-win_amd64.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\MSVCP140.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\MSVCP140_1.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\MSVCP140_2.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\opengl32sw.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\pyside6.abi3.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\Qt6Core.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\Qt6Gui.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\Qt6Network.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\Qt6OpenGL.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\Qt6Pdf.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\Qt6Qml.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\Qt6QmlMeta.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\Qt6QmlModels.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\Qt6QmlWorkerScript.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\Qt6Quick.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\Qt6Svg.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\Qt6VirtualKeyboard.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\Qt6Widgets.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\QtCore.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\QtGui.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\QtNetwork.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\QtWidgets.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\VCRUNTIME140.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\VCRUNTIME140_1.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\generic\qtuiotouchplugin.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\iconengines\qsvgicon.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\imageformats\qgif.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\imageformats\qicns.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\imageformats\qico.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\imageformats\qjpeg.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\imageformats\qpdf.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\imageformats\qsvg.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\imageformats\qtga.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\imageformats\qtiff.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\imageformats\qwbmp.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\imageformats\qwebp.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\networkinformation\qnetworklistmanager.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\platforminputcontexts\qtvirtualkeyboardplugin.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\platforms\qdirect2d.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\platforms\qminimal.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\platforms\qoffscreen.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\platforms\qwindows.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\styles\qmodernwindowsstyle.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\tls\qcertonlybackend.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\tls\qopensslbackend.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\plugins\tls\qschannelbackend.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_ar.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_bg.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_ca.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_cs.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_da.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_de.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_en.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_es.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_fa.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_fi.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_fr.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_gd.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_he.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_hr.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_hu.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_it.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_ja.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_ka.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_ko.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_lg.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_lv.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_nl.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_nn.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_pl.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_pt_BR.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_ru.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_sk.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_sv.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_tr.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_uk.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_zh_CN.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qtbase_zh_TW.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_ar.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_bg.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_ca.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_cs.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_da.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_de.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_en.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_es.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_fa.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_fi.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_fr.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_gd.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_gl.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_he.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_ar.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_bg.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_ca.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_cs.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_da.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_de.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_en.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_es.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_fr.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_gl.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_hr.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_hu.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_it.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_ja.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_ka.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_ko.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_nl.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_nn.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_pl.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_pt_BR.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_ru.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_sk.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_sl.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_sv.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_tr.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_uk.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_zh_CN.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_help_zh_TW.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_hr.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_hu.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_it.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_ja.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_ka.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_ko.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_lg.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_lt.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_lv.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_nl.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_nn.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_pl.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_pt_BR.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_pt_PT.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_ru.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_sk.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_sl.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_sv.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_tr.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_uk.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_zh_CN.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\PySide6\translations\qt_zh_TW.qm
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\shiboken6\MSVCP140.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\shiboken6\Shiboken.pyd
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\shiboken6\shiboken6.abi3.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\shiboken6\VCRUNTIME140.dll
+   Compressing: D:\a\glitch-lab\glitch-lab\packaging\..\dist\GlitchLab\_internal\shiboken6\VCRUNTIME140_1.dll
+   Compressing Setup program executable
+   Updating version info (Setup.exe)
+   Updating manifest (Setup.exe)
+
+
+Successful compile (86.782 sec). Resulting Setup program filename is:
+D:\a\glitch-lab\glitch-lab\dist\GlitchLab-1.0.0-setup-win64.exe
+Installer: dist\GlitchLab-1.0.0-setup-win64.exe
