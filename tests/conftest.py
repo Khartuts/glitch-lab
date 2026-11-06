@@ -30,7 +30,14 @@ def services():
     return EngineServices()
 
 
+#: Set GLITCHLAB_REQUIRE_FFMPEG=1 (the Windows build does) to turn "FFmpeg not
+#: available" skips into failures, so a broken FFmpeg setup cannot hide.
+REQUIRE_FFMPEG = os.environ.get("GLITCHLAB_REQUIRE_FFMPEG") == "1"
+
+
 def ffmpeg_available() -> bool:
+    if REQUIRE_FFMPEG:
+        return True
     ok, _ = EngineServices().ffmpeg_status()
     return ok
 

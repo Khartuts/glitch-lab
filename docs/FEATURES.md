@@ -4,7 +4,7 @@ Legend
 
 | Mark | Meaning |
 |---|---|
-| ✅ | Implemented and covered by automated tests (`pytest`, 332 tests, all passing on the Linux build host) |
+| ✅ | Implemented and covered by automated tests (`pytest`, 335 tests, all passing on the Linux build host) |
 | 👁 | Implemented and verified manually / visually (offscreen screenshots, contact sheet), no dedicated automated assertion |
 | ⚠️ | Implemented but **untested** in this release (cannot be exercised on the build host) |
 | ❌ | Not implemented / known limitation |
@@ -54,7 +54,7 @@ available**: Windows-specific items are marked ⚠️.
 | Channel targeting (RGB, R, G, B, luminance) | ✅ |
 | Source alpha preserved by default; explicit *Affect alpha* | ✅ |
 | Undo/redo of recipes only, bounded (200 entries / 64 MB), slider drags coalesced | ✅ |
-| Zero strength returns input; bypass returns input; determinism | ✅ (all 22 effects) |
+| Zero strength returns input; bypass returns input; determinism | ✅ (all 20 effects) |
 | Reordering changes processing order | ✅ |
 | Prefix render cache (bounded LRU) | ✅ |
 

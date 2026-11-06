@@ -3,7 +3,7 @@
 Working copy: `/home/user/glitch_lab` (Linux build host; target Windows 10/11 x64).
 Dev venv: `.venv` (Python 3.13, `requirements-dev.txt`, package installed with `pip install -e . --no-deps`).
 
-* Tests: `QT_QPA_PLATFORM=offscreen .venv/bin/python -m pytest -q`  -> **332 passed** (engine + offscreen UI)
+* Tests: `QT_QPA_PLATFORM=offscreen .venv/bin/python -m pytest -q`  -> **335 passed** (engine + offscreen UI)
 * UI screenshots: `.venv/bin/python scripts/ui_smoke.py OUT_DIR`
 * Linux package build + verification: `bash packaging/build_linux.sh` -> PASSED
   (packaged self-test 33/33, contact sheet 28/28 OK, GUI smoke test with full render)

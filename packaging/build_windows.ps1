@@ -58,10 +58,11 @@ if (Test-Path $ffexe) {
 if (-not $SkipTests) {
     Step "Automated tests"
     $env:QT_QPA_PLATFORM = "offscreen"
-    if (Test-Path $ffexe) { $env:GLITCHLAB_FFMPEG = $ffexe }
+    if (Test-Path $ffexe) { $env:GLITCHLAB_FFMPEG = $ffexe; $env:GLITCHLAB_REQUIRE_FFMPEG = "1" }
     & $py -m pytest -q -rs; Check "Automated tests"
     Remove-Item Env:QT_QPA_PLATFORM
     Remove-Item Env:GLITCHLAB_FFMPEG -ErrorAction SilentlyContinue
+    Remove-Item Env:GLITCHLAB_REQUIRE_FFMPEG -ErrorAction SilentlyContinue
 }
 
 Step "Icon"
@@ -84,6 +85,9 @@ Get-Content (Join-Path $root "dist\selftest-report.txt")
 if ($selftestExit -ne 0) { throw "Packaged self-test failed - see dist\selftest-report.txt" }
 if ((Test-Path $ffexe) -and -not (Select-String -Path (Join-Path $root "dist\selftest-report.txt") -Pattern "bundled with Glitch Lab" -Quiet)) {
     throw "The packaged app did not pick up its bundled ffmpeg.exe"
+}
+if ((Test-Path $ffexe) -and (Select-String -Path (Join-Path $root "dist\selftest-report.txt") -Pattern "^SKIP" -Quiet)) {
+    throw "The packaged self-test skipped checks although FFmpeg is bundled - see dist\selftest-report.txt"
 }
 & $cli --contact-sheet (Join-Path $root "dist\contact_sheet.png") --overwrite; Check "Packaged contact sheet"
 if ($Headless) { $env:QT_QPA_PLATFORM = "offscreen" }

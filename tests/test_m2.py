@@ -469,3 +469,32 @@ def test_ffmpeg_failing_roundtrip_is_reported(photo, tmp_path):
 def test_real_ffmpeg_passes_roundtrip_probe(services):
     info = services.ffmpeg()
     assert info.raw_alaw_ok and not info.missing()
+
+
+FILTERS_61 = """Filters:
+  T.. = Timeline support
+  .S. = Slice threading
+  ..C = Command support
+ T.C acrusher          A->A       Reduce audio bit resolution.
+ ... aecho             A->A       Add echoing to the audio.
+ TSC bandpass          A->A       Apply a two-pole Butterworth band-pass filter.
+ ... abuffer           |->A       Buffer audio frames, and make them accessible to the filterchain.
+ ... amix              N->A       Audio mixing.
+"""
+
+FILTERS_8X = """Filters:
+  T. = Timeline support
+  .S = Slice threading
+  A = Audio input/output
+ T. acrusher          A->A       Reduce audio bit resolution.
+ .. aecho             A->A       Add echoing to the audio.
+ TS bandpass          A->A       Apply a two-pole Butterworth band-pass filter.
+ .. abuffer           |->A       Buffer audio frames, and make them accessible to the filterchain.
+ .. amix              N->A       Audio mixing.
+"""
+
+
+@pytest.mark.parametrize("text", [FILTERS_61, FILTERS_8X, FILTERS_8X.replace("\n", "\r\n")])
+def test_parse_filter_list_all_ffmpeg_layouts(text):
+    from glitchlab.engine.services import parse_filter_list
+    assert parse_filter_list(text) == {"acrusher", "aecho", "bandpass", "abuffer", "amix"}

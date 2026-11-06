@@ -83,14 +83,38 @@ def probe_ffmpeg(path: str) -> FFmpegInfo:
     if "ffmpeg" not in version.lower():
         raise DependencyError(f"'{path}' does not look like FFmpeg: {version!r}")
     f = _run_capture([path, "-hide_banner", "-filters"])
-    filters: set[str] = set()
-    for line in f.stdout.decode("utf-8", "replace").splitlines():
-        m = re.match(r"^\s*[TSC.]{3}\s+(\S+)\s+\S+->\S+", line)
-        if m:
-            filters.add(m.group(1))
+    filters = parse_filter_list(f.stdout.decode("utf-8", "replace"))
+    # The listing format has changed between FFmpeg versions (3 flag columns
+    # up to 7.x, 2 from 8.0), so any needed filter that the parser did not see
+    # is confirmed individually with "ffmpeg -h filter=NAME".
+    for name in SONIFY_FILTERS:
+        if name not in filters and _filter_exists(path, name):
+            filters.add(name)
     info = FFmpegInfo(path=path, version=version, filters=filters)
     info.raw_alaw_ok = _alaw_roundtrip_ok(path)
     return info
+
+
+_FILTER_LINE = re.compile(r"^\s*[A-Z.|]{2,4}\s+([A-Za-z0-9_]+)\s+\S+->\S+")
+
+
+def parse_filter_list(text: str) -> set[str]:
+    """Filter names from ``ffmpeg -filters`` output (FFmpeg 4.x-8.x layouts)."""
+    out = set()
+    for line in text.splitlines():
+        m = _FILTER_LINE.match(line)
+        if m:
+            out.add(m.group(1))
+    return out
+
+
+def _filter_exists(path: str, name: str) -> bool:
+    try:
+        r = _run_capture([path, "-hide_banner", "-h", f"filter={name}"], timeout=15)
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    text = (r.stdout + r.stderr).decode("utf-8", "replace")
+    return r.returncode == 0 and f"Filter {name}" in text and "Unknown filter" not in text
 
 
 def _alaw_roundtrip_ok(path: str) -> bool:

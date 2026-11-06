@@ -5,7 +5,7 @@ photograph, build a nondestructive stack of real data-bending and glitch
 effects, explore seeded variations, and export finished artwork.
 Everything runs locally and offline. No accounts, no cloud.
 
-* 22 effects: genuine HEX/byte corruption of BMP/PPM/JPEG files, **Sonify**
+* 20 effects: genuine HEX/byte corruption of BMP/PPM/JPEG files, **Sonify**
   (pixels → raw A-law audio → FFmpeg filters → pixels), pixel sorting, channel
   displacement, scanline tearing, block scrambling, feedback, bit-plane
   surgery, palette damage, compression decay, data reinterpretation,
