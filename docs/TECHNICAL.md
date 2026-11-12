@@ -123,3 +123,32 @@ versions (e.g. libjpeg, FFmpeg) may change JPEG/Sonify-based results.
 * Preview of byte-level effects is an approximation (labelled).
 * Windows packaging was configured and its Linux equivalent was built and
   verified; a Windows binary was not built on this build host.
+
+## Added in 1.1
+
+* **A-law codec.** `effects/audio.py` implements G.711 A-law exactly as
+  FFmpeg does (its decode formula and its 14-bit encode table); tests compare
+  it with FFmpeg on all 256 codes and all 65 536 16-bit values. Audio Reverb
+  Smearing and Audio File Bending therefore use the same pixel ↔ A-law
+  contract as Sonify but run in NumPy (identical on every platform).
+* **Audio files** are read by Python's `wave` module (PCM 8/16/24/32-bit,
+  any channel count → mono, linear resampling) or decoded by FFmpeg to raw
+  16-bit mono (`-ac 1 -ar <rate> -f s16le`) for other formats; at most 600 s are
+  used. Decoded audio is cached (4 files).
+* **Convolution reverb** uses FFT overlap-add in 512 k-sample blocks
+  (bounded memory). Synthetic impulse responses are seeded exponentially
+  decaying noise with early reflections and damping, normalised to unit energy;
+  the wet signal is level-matched to the input and the result hard-clipped.
+* **Text & File Injection** reads at most 64 MB of the chosen file. BMP/PPM/raw
+  payloads are normalised with the same length policies as HEX corruption; the
+  8-bit BMP colour table target edits only the BGRA palette between the headers
+  and the pixel array; the JPEG table target rewrites only 8-bit DQT values
+  (never 0); JPEG scan injection never writes `FF` and skips protected
+  marker/stuffing bytes.
+* **Halftones** use rotated screens and spot functions (Euclidean round,
+  square, line, diamond) linearised with a precomputed coverage → threshold
+  table, so the inked area matches the tone. Plates are rendered in row chunks.
+* **Voronoi Shatter Sorting** labels pixels with OpenCV's
+  `distanceTransformWithLabels` (seed points in normalised coordinates), then
+  permutes colours within each cell with two global sorts (cell, position) and
+  (cell, key).

@@ -20,7 +20,7 @@ from ..ops import (
     ycbcr_to_rgb,
 )
 from ..errors import EffectError
-from ..params import EDGE_MODES, FILE, Param, bparam, cparam, fparam, iparam
+from ..params import EDGE_MODES, FILE, Param, bparam, color_to_rgb, cparam, fparam, iparam
 from .base import Effect, register
 
 
@@ -324,4 +324,116 @@ class CrossModulation(Effect):
             new = to_uint8(df + (res - df) * a, scale=1.0)
         out = img.copy()
         out[..., di] = new
+        return out
+
+
+# ---------------------------------------------------------------------------
+# Topographic contour tearing
+# ---------------------------------------------------------------------------
+
+@register
+class ContourTear(Effect):
+    id = "contour_tear"
+    name = "Topographic Contour Tearing"
+    category = "Displacement"
+    description = ("Turns brightness into an elevation map of contour rings, then slices out every n-th ring "
+                   "and slides it sideways like shifting tectonic plates. Optional contour lines.")
+    supports_alpha = True
+    uses_seed = False
+    params = (
+        iparam("levels", "Elevation levels", 14, 3, 64, tooltip="Number of contour rings from dark to bright."),
+        iparam("smooth", "Smoothing", 6, 0, 200, spatial=True, unit="px", tooltip="Blur of the elevation map (rounder rings)."),
+        iparam("every", "Tear every n-th ring", 3, 2, 12),
+        iparam("phase", "Ring offset", 0, 0, 11, tooltip="Which ring of each group is torn."),
+        iparam("offset_x", "Offset X", 22, -2000, 2000, spatial=True, unit="px"),
+        iparam("offset_y", "Offset Y", 0, -2000, 2000, spatial=True, unit="px"),
+        bparam("alternate", "Alternate direction", True, tooltip="Neighbouring torn rings slide in opposite directions."),
+        fparam("growth", "Offset growth", 0.5, 0.0, 3.0, tooltip="Higher rings slide further."),
+        fparam("lines", "Contour lines", 0.35, 0.0, 1.0, tooltip="Strength of drawn contour lines."),
+        iparam("line_px", "Line width", 1, 1, 20, spatial=True, unit="px"),
+        Param("line_color", "Line colour", "color", "#101010"),
+        Param("edge", "Edges", "choice", "clamp", choices=EDGE_MODES),
+    )
+
+    def process(self, img, p, ctx):
+        h, w = img.shape[:2]
+        lum = luminance(img)
+        if p["smooth"] > 0:
+            lum = cv2.GaussianBlur(lum, (0, 0), max(0.5, p["smooth"] / 2.0))
+        L = int(p["levels"])
+        band = np.clip((lum * L).astype(np.int32), 0, L - 1)
+        every = int(p["every"])
+        phase = int(p["phase"]) % every
+        out = img.copy()
+        band_out = band.copy()
+        torn = [b for b in range(L) if b % every == phase]
+        for k, b in enumerate(torn):
+            ctx.check()
+            mask = (band == b).astype(np.uint8)
+            if not mask.any():
+                continue
+            sign = -1.0 if (p["alternate"] and k % 2) else 1.0
+            scale = sign * (1.0 + p["growth"] * b / max(1, L - 1))
+            dx, dy = int(round(p["offset_x"] * scale)), int(round(p["offset_y"] * scale))
+            moved_mask = shift_plane(mask, dx, dy, p["edge"]).astype(bool)
+            moved = shift_plane(img, dx, dy, p["edge"])
+            out[moved_mask] = moved[moved_mask]
+            band_out[moved_mask] = b
+        if p["lines"] > 0:
+            edge = np.zeros((h, w), np.uint8)
+            edge[:, 1:] |= (band_out[:, 1:] != band_out[:, :-1]).astype(np.uint8)
+            edge[1:, :] |= (band_out[1:, :] != band_out[:-1, :]).astype(np.uint8)
+            k = int(p["line_px"])
+            if k > 1:
+                edge = cv2.dilate(edge, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k)))
+            col = np.array(color_to_rgb(p["line_color"]), np.float32)
+            a = (edge.astype(np.float32) * float(p["lines"]))[..., None]
+            out[..., :3] = to_uint8(out[..., :3].astype(np.float32) * (1 - a) + col * a, scale=1.0)
+        return out
+
+
+# ---------------------------------------------------------------------------
+# Chromatic aberration (lens)
+# ---------------------------------------------------------------------------
+
+@register
+class ChromaticAberration(Effect):
+    id = "chromatic"
+    name = "Chromatic Aberration (Lens)"
+    category = "Analog & Lens"
+    description = ("Lateral lens aberration: red and blue are magnified differently from green, so colour "
+                   "fringes grow towards the edges of the frame. Optional fringe blur.")
+    uses_seed = False
+    supports_channels = False
+    params = (
+        fparam("strength", "Strength", 10.0, -200.0, 200.0, decimals=1, spatial=True, unit="px",
+               tooltip="Red/blue displacement at the image corner (negative swaps the fringe colours)."),
+        fparam("falloff", "Falloff", 2.0, 1.0, 4.0, tooltip="1 = grows linearly to the edge, higher = mostly at the edges."),
+        fparam("cx", "Centre X", 0.5, 0.0, 1.0),
+        fparam("cy", "Centre Y", 0.5, 0.0, 1.0),
+        fparam("green", "Green share", 0.0, -1.0, 1.0, tooltip="Also move green (fraction of the red shift)."),
+        fparam("blur", "Fringe blur", 1.5, 0.0, 30.0, decimals=1, spatial=True, unit="px"),
+    )
+
+    def process(self, img, p, ctx):
+        h, w = img.shape[:2]
+        cx, cy = p["cx"] * w, p["cy"] * h
+        rmax = float(np.hypot(max(cx, w - cx), max(cy, h - cy))) or 1.0
+        xs, ys = np.meshgrid(np.arange(w, dtype=np.float32) - cx, np.arange(h, dtype=np.float32) - cy)
+        r = np.sqrt(xs * xs + ys * ys) / rmax
+        # displacement along the radius, in pixels
+        disp = (np.float32(p["strength"]) * r ** (p["falloff"] - 1.0)) / rmax
+        out = img.copy()
+        for ch, k in ((0, 1.0), (1, p["green"]), (2, -1.0)):
+            if k == 0:
+                continue
+            fx = (xs * (1.0 - k * disp) + cx).astype(np.float32)
+            fy = (ys * (1.0 - k * disp) + cy).astype(np.float32)
+            plane = cv2.remap(np.ascontiguousarray(img[..., ch]), fx, fy, interpolation=cv2.INTER_LINEAR,
+                              borderMode=cv2.BORDER_REPLICATE)
+            if p["blur"] > 0.3:
+                blurred = cv2.GaussianBlur(plane, (0, 0), p["blur"])
+                wgt = np.clip(r, 0, 1)
+                plane = to_uint8(plane.astype(np.float32) * (1 - wgt) + blurred.astype(np.float32) * wgt, scale=1.0)
+            out[..., ch] = plane
         return out

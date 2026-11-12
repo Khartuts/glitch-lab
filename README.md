@@ -5,15 +5,25 @@ photograph, build a nondestructive stack of real data-bending and glitch
 effects, explore seeded variations, and export finished artwork.
 Everything runs locally and offline. No accounts, no cloud.
 
-* 20 effects: genuine HEX/byte corruption of BMP/PPM/JPEG files, **Sonify**
-  (pixels → raw A-law audio → FFmpeg filters → pixels), pixel sorting, channel
-  displacement, scanline tearing, block scrambling, feedback, bit-plane
-  surgery, palette damage, compression decay, data reinterpretation,
-  row/column drift, displacement maps, spectral (FFT) damage, slit-scan,
-  error-diffusion trails, cellular automata, Gray–Scott reaction-diffusion,
-  mosaic bleed and channel cross-modulation.
+**Download (Windows 10/11, 64-bit):**
+[installer](https://github.com/Khartuts/glitch-lab/releases/latest/download/GlitchLab-setup-win64.exe) ·
+[portable zip](https://github.com/Khartuts/glitch-lab/releases/latest/download/GlitchLab-win64.zip) ·
+[all releases](https://github.com/Khartuts/glitch-lab/releases)
+
+* 30 effects, including genuine data bending: HEX/byte corruption of BMP/PPM/JPEG files;
+  **Text & File Injection** (inject typed text or the bytes of any file - txt, wav, mp3 … - into
+  BMP pixels, the BMP colour table, PPM, JPEG scan data or JPEG quantisation tables);
+  **Sonify** (pixels → raw A-law audio → FFmpeg filters → pixels); **Audio File Bending**
+  (bend pixels with your own audio file); **Audio Reverb Smearing** (cathedral / hall / room /
+  impulse-response file, reverse reverb).
+* Print effects: Halftone Screen, CMYK Halftone Drift (moiré, misregistration, plate slicing), Ben-Day Dots.
+* Pixel sorting (thresholds or between edges), Voronoi Shatter Sorting, channel displacement,
+  chromatic aberration, scanline tearing, VHS & CRT, block scrambling, feedback, bit-plane surgery,
+  palette damage, compression decay, data reinterpretation, row/column drift, displacement maps,
+  topographic contour tearing, spectral (FFT) damage, slit-scan, error-diffusion trails, cellular
+  automata, Gray–Scott reaction-diffusion, mosaic bleed and channel cross-modulation.
 * Layers with blend modes and opacity, rectangle/brush/luminance masks.
-* Variation Grid (4/9/16 seeded variations, locks, favourites, batch export).
+* Variation Grid (1–64 seeded variations, locks, favourites, batch export).
 * Projects (`.glab`) that reproduce the full-resolution result exactly.
 
 Beginners: start with **docs/USER_GUIDE.md**.
@@ -71,7 +81,7 @@ This creates `.venv-win`, installs pinned dependencies, runs the tests,
 downloads and SHA-256-verifies an LGPL FFmpeg build, runs PyInstaller, then
 **tests the packaged application separately** (`glitchlab-cli.exe --selftest`,
 `--contact-sheet`, and `GlitchLab.exe --smoke-test`) and writes
-`dist\GlitchLab-1.0.0-win64.zip`. Add `-Installer` to build an Inno Setup
+`dist\GlitchLab-<version>-win64.zip` (plus a copy named `GlitchLab-win64.zip`). Add `-Installer` to build an Inno Setup
 installer (`winget install JRSoftware.InnoSetup` first). The resulting
 `dist\GlitchLab\GlitchLab.exe` runs without a separate Python installation.
 
@@ -82,10 +92,10 @@ Windows runner: full test suite (Sonify tested against the bundled FFmpeg),
 PyInstaller build, packaged self-test / contact sheet / GUI smoke test,
 installer. Every push to `main` runs it; a successful run creates or updates
 the **GitHub Release** `v<version>` (version from `pyproject.toml`) with
-`GlitchLab-1.0.0-setup-win64.exe`, `GlitchLab-1.0.0-win64.zip` and the
+`GlitchLab-setup-win64.exe`, `GlitchLab-win64.zip` (plus versioned copies) and the
 packaged self-test report. The run's result and log are also written to the
 `build-status` branch. Download links then have the form
-`https://github.com/<owner>/<repo>/releases/latest/download/GlitchLab-1.0.0-setup-win64.exe`.
+`https://github.com/<owner>/<repo>/releases/latest/download/GlitchLab-setup-win64.exe`.
 The build can also be started by hand from the repository's *Actions* tab
 (*windows-build → Run workflow*); that produces a downloadable workflow artifact.
 

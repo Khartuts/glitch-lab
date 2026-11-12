@@ -1,6 +1,6 @@
 ; Inno Setup 6 script for Glitch Lab (per-user or all-users install, x64 only).
 #define AppName "Glitch Lab"
-#define AppVersion "1.0.0"
+#define AppVersion "1.1.0"
 
 [Setup]
 AppId={{5B7C2E7A-3D3B-4C5E-9F43-6A1E2C7D9B10}

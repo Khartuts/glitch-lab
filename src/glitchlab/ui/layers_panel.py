@@ -28,6 +28,7 @@ from ..engine.params import fparam
 from .canvas import TOOL_BRUSH, TOOL_ERASE, TOOL_PAN, TOOL_RECT
 from .panels import section_label
 from .param_widgets import NumberEditor
+from .widgets import shrinkable_combo
 
 _OPACITY = fparam("opacity", "Opacity", 1.0, 0.0, 1.0)
 _BRUSH = fparam("brush", "Brush size", 0.03, 0.002, 0.25, decimals=3,
@@ -97,6 +98,7 @@ class LayersPanel(QWidget):
         self.blend = QComboBox()
         for m in BLEND_MODES:
             self.blend.addItem(m.title(), m)
+        shrinkable_combo(self.blend)
         self.blend.setToolTip("How this layer combines with the layers below it.")
         self.blend.currentIndexChanged.connect(lambda _i: self._emit_layer("blend", self.blend.currentData()))
         form.addRow("Blend mode", self.blend)
@@ -113,6 +115,7 @@ class LayersPanel(QWidget):
         self.alpha = QComboBox()
         for m in ALPHA_MODES:
             self.alpha.addItem(_ALPHA_LABELS[m], m)
+        shrinkable_combo(self.alpha)
         self.alpha.setToolTip("Output transparency. By default the source alpha is preserved.")
         self.alpha.currentIndexChanged.connect(lambda _i: (not self._updating) and self.alpha_mode_changed.emit(self.alpha.currentData()))
         dform.addRow("Alpha output", self.alpha)

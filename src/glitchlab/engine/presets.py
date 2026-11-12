@@ -125,6 +125,77 @@ BUILTIN_PRESETS: list[dict] = [
                 blend="multiply", mix=0.6),
         ],
     },
+    # Version 1.1 presets
+    {
+        "name": "Pop Art Misprint",
+        "description": "Ben-Day comic dots with a misregistered colour plate and a torn print line.",
+        "stack": [
+            _fx("benday", 5201, spacing=9, dot_size=0.72, angle=45.0, palette="pop", threshold=0.33,
+                black_level=0.16, flatten=6, outline=0.85, outline_px=2, paper="#f6efdc"),
+            _fx("channel_shift", 5202, space="rgb", r_dx=4, r_dy=2, g_dx=0, g_dy=0, b_dx=-3, b_dy=-1,
+                edge="clamp"),
+            _fx("scanline_tear", 5203, bands=3, min_thickness=6, max_thickness=30, displacement=40, jitter=0,
+                direction="both", rgb_split=0, edge="clamp", mix=0.9),
+        ],
+    },
+    {
+        "name": "Comic Moiré",
+        "description": "Halftone glitch hybrid: CMYK dot plates drifting in waves, misregistered and sliced.",
+        "stack": [
+            _fx("cmyk_drift", 5301, cell=8, shape="round", gcr=0.7, angle_offset=0.0, drift_plates="cm",
+                drift_amp=7, drift_wavelength=160, drift_direction="both", drift_phase=0.15, c_dx=3, c_dy=0,
+                m_dx=-2, m_dy=2, y_dx=0, y_dy=0, k_dx=0, k_dy=0, slice_bands=8, slice_shift=36,
+                slice_plates="cm", paper="#f7f3e8"),
+        ],
+    },
+    {
+        "name": "VHS Night",
+        "description": "Smeared tape colour, tracking errors and a curved CRT.",
+        "stack": [
+            _fx("row_drift", 5401, axis="rows", waveform="noise", amplitude=6, frequency=8.0, phase=0.0,
+                chroma_phase=0.1, edge="clamp"),
+            _fx("vhs_crt", 5402, chroma_blur=9, chroma_shift=4, saturation=1.25, sharpen=0.6, tracking=0.6,
+                tracking_bands=4, noise=0.18, streaks=14, scanlines=0.4, scan_period=3, mask="aperture",
+                mask_strength=0.3, bloom=0.35, vignette=0.45, curvature=0.1, border=True),
+        ],
+    },
+    {
+        "name": "Stained Glass Meltdown",
+        "description": "Voronoi cells sorted dark to light, leaded, with lens fringing.",
+        "stack": [
+            _fx("voronoi_sort", 5501, cells=34, sort_by="luminance", direction="vertical", reverse=False,
+                lead=2, lead_color="#141414"),
+            _fx("chromatic", 5502, strength=9.0, falloff=2.0, cx=0.5, cy=0.5, green=0.0, blur=1.0),
+        ],
+    },
+    {
+        "name": "Cathedral Ghosts",
+        "description": "Pixels played through a cathedral reverb: highlights echo across the frame.",
+        "stack": [
+            _fx("audio_reverb", 5601, space="cathedral", decay=3.5, predelay=40.0, damping=0.6, reverse=False,
+                wet=0.5, dry=0.8, rate="22050", scale_rate=True, planes="luma"),
+        ],
+    },
+    {
+        "name": "Lyric Injection",
+        "description": "Text pasted into the JPEG quantisation tables and inserted into the pixel data.",
+        "stack": [
+            _fx("data_injection", 5701, source="text", text="i can hear the colours glitch // 48.8584 N 2.2945 E",
+                target="jpeg_tables", mode="xor", count=4, chunk=40, placement="even", tables="chroma",
+                quality=85, mix=0.85),
+            _fx("data_injection", 5702, source="text", text="i can hear the colours glitch // 48.8584 N 2.2945 E",
+                target="bmp_pixels", mode="insert", count=5, chunk=33, placement="random",
+                region_start=0.2, region_end=0.9, length_policy="truncate_pad_source"),
+        ],
+    },
+    {
+        "name": "Tectonic Portrait",
+        "description": "Brightness contours sliced into sliding tectonic plates with drawn elevation lines.",
+        "stack": [
+            _fx("contour_tear", 5801, levels=16, smooth=8, every=3, phase=1, offset_x=26, offset_y=6,
+                alternate=True, growth=0.6, lines=0.45, line_px=1, line_color="#101010", edge="clamp"),
+        ],
+    },
     # Milestone-1-only presets (they use only the first four effects).
     {
         "name": "Tape Snag",

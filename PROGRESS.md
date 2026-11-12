@@ -15,13 +15,21 @@ Dev venv: `.venv` (Python 3.13, `requirements-dev.txt`, package installed with `
 - [x] M3: effects 7-20, performance work (prefix cache, Gray-Scott 5x, mosaic bleed 1.8x),
       contact sheet, self-test, PyInstaller spec, Windows/Linux build scripts, installer script, CI workflow, docs
 
-## Windows release (done)
+## Windows release
 
-* Repo: https://github.com/Khartuts/glitch-lab (public). Every push to `main` rebuilds on windows-latest
-  and updates release v1.0.0 (use `[skip ci]` in the commit message for repo-only changes).
-* Run 42212319268: 332 passed / 3 Linux-only skipped on Windows; packaged self-test PASSED incl. Sonify
-  with bundled FFmpeg n8.1.3; installer + zip published.
-* Downloads: https://github.com/Khartuts/glitch-lab/releases/latest/download/GlitchLab-1.0.0-setup-win64.exe
-  and .../GlitchLab-1.0.0-win64.zip
+* Repo: https://github.com/Khartuts/glitch-lab (public). Every push to `main` rebuilds on windows-latest and
+  creates/updates the release `v<version from pyproject.toml>` (use `[skip ci]` for repo-only changes).
+* Stable download links (always the newest release):
+  https://github.com/Khartuts/glitch-lab/releases/latest/download/GlitchLab-setup-win64.exe
+  https://github.com/Khartuts/glitch-lab/releases/latest/download/GlitchLab-win64.zip
 * Build results/log: `build-status` branch.
-* Not yet tested: interactive use on a real Windows 10/11 desktop; installer install/uninstall.
+
+## Version 1.1.0 (this session)
+
+* Bugs fixed: variations panel aligned under the preview (vertical splitter); window never wider than the
+  screen (min width 766 px; elided status; wrapping toolbars; screen-fitted geometry); any variation
+  count 1-64; export conflicts -> Overwrite / Save as new numbered (`_01`, `_02` ...) / Cancel (also batch).
+* New effects (30 total): data_injection, audio_file_bend, audio_reverb, halftone, cmyk_drift, benday,
+  voronoi_sort, contour_tear, chromatic, vhs_crt; pixel_sort "between edges"; 7 new presets.
+* NumPy G.711 A-law codec bit-exact with FFmpeg.
+* Tests: 504 passed locally (Linux). Linux package pre-flight: self-test PASSED, contact sheet 48/48.

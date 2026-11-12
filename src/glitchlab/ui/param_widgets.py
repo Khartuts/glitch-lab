@@ -24,6 +24,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..engine.params import BITS, BOOL, CHOICE, COLOR, FILE, FLOAT, HEX, INT, TEXT, Param, parse_hex_bytes
+from .widgets import shrinkable_combo
 
 
 class _Editor(QWidget):
@@ -150,6 +151,7 @@ class ChoiceEditor(_Editor):
         self.combo = QComboBox()
         for value, label in param.choices:
             self.combo.addItem(label, value)
+        shrinkable_combo(self.combo)
         self.combo.setToolTip(param.tooltip)
         lay.addWidget(self.combo)
         self.combo.currentIndexChanged.connect(lambda _i: self._emit(self.combo.currentData(), True))
@@ -243,8 +245,10 @@ class FileEditor(_Editor):
         self.edit = QLineEdit()
         self.edit.setReadOnly(True)
         self.edit.setPlaceholderText("(none)")
+        self.edit.setMinimumWidth(40)
         self.edit.setToolTip(param.tooltip)
         b = QPushButton("Browse…")
+        b.setMinimumWidth(10)
         c = QToolButton()
         c.setText("✕")
         c.setToolTip("Clear")
@@ -306,7 +310,7 @@ class BitsEditor(_Editor):
             b = QToolButton()
             b.setText(str(bit))
             b.setCheckable(True)
-            b.setFixedWidth(24)
+            b.setFixedWidth(22)
             b.setToolTip(f"Bit plane {bit} ({'most' if bit == param.nbits - 1 else 'least' if bit == 0 else ''} significant)".replace(" ()", ""))
             b.toggled.connect(self._toggled)
             self.buttons.append((bit, b))

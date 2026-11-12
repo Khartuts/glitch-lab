@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 
 from ..ops import luminance, rgb_to_hsv, to_float, to_uint8
-from ..params import Param, bparam, cparam, fparam, iparam
+from ..params import COLOR, Param, bparam, color_to_rgb, cparam, fparam, iparam
 from .base import Effect, register
 
 _KEY_CHOICES = (("luminance", "Luminance"), ("hue", "Hue"), ("saturation", "Saturation"),
@@ -68,10 +68,13 @@ class PixelSort(Effect):
         cparam("direction", "Direction", "horizontal",
                (("horizontal", "Horizontal"), ("vertical", "Vertical"),
                 ("diag_down", "Diagonal ↘"), ("diag_up", "Diagonal ↗"))),
-        Param("interval", "Select spans by", "choice", "luminance", choices=_KEY_CHOICES[:3],
+        Param("interval", "Select spans by", "choice", "luminance",
+              choices=_KEY_CHOICES[:3] + (("edges", "Between edges"),),
               tooltip="Pixels whose value lies inside the threshold interval are sorted."),
-        fparam("lower", "Lower threshold", 0.25, 0.0, 1.0),
-        fparam("upper", "Upper threshold", 0.85, 0.0, 1.0),
+        fparam("lower", "Lower threshold", 0.25, 0.0, 1.0, show_if=("interval", ("luminance", "hue", "saturation"))),
+        fparam("upper", "Upper threshold", 0.85, 0.0, 1.0, show_if=("interval", ("luminance", "hue", "saturation"))),
+        fparam("edge_threshold", "Edge sensitivity", 0.5, 0.05, 1.0, show_if=("interval", ("edges",)),
+               tooltip="Spans run between detected edges; higher = fewer edges = longer streaks."),
         bparam("invert", "Invert selection", False, tooltip="Sort pixels outside the interval instead."),
         Param("sort_by", "Sort by", "choice", "luminance", choices=_KEY_CHOICES),
         bparam("reverse", "Reverse order", False),
@@ -83,13 +86,20 @@ class PixelSort(Effect):
 
     def process(self, img, p, ctx):
         h, w = img.shape[:2]
-        crit_map = _key_map(img, p["interval"])
-        lo, hi = sorted((p["lower"], p["upper"]))
-        crit = (crit_map >= lo) & (crit_map <= hi)
+        if p["interval"] == "edges":
+            lum8 = np.clip(np.rint(luminance(img) * 255), 0, 255).astype(np.uint8)
+            t = 30 + p["edge_threshold"] * 220
+            edges = cv2.Canny(cv2.GaussianBlur(lum8, (3, 3), 0), t * 0.5, t)
+            crit = edges == 0
+            crit_map = luminance(img)
+        else:
+            crit_map = _key_map(img, p["interval"])
+            lo, hi = sorted((p["lower"], p["upper"]))
+            crit = (crit_map >= lo) & (crit_map <= hi)
         if p["invert"]:
             crit = ~crit
         crit &= img[..., 3] > 0  # transparent pixels never take part
-        keys = _key_map(img, p["sort_by"]) if p["sort_by"] != p["interval"] else crit_map
+        keys = crit_map if p["sort_by"] == p["interval"] else _key_map(img, p["sort_by"])
         keys16 = np.clip(np.rint(keys * 65535.0), 0, 65535).astype(np.int64).ravel()
         if p["reverse"]:
             keys16 = 65535 - keys16
@@ -363,4 +373,82 @@ class MosaicBleed(Effect):
             amt = np.clip(spread * 1.5, 0, 1) * float(p["leakage"])
             ycc[..., 1:] = ycc[..., 1:] * (1 - amt) + blurred * amt
             out[..., :3] = ycbcr_to_rgb(ycc)
+        return out
+
+
+# ---------------------------------------------------------------------------
+# Voronoi shatter sorting
+# ---------------------------------------------------------------------------
+
+def voronoi_labels(h: int, w: int, points: np.ndarray) -> np.ndarray:
+    """Label map (H, W int32) assigning every pixel to its nearest seed point."""
+    src = np.full((h, w), 255, np.uint8)
+    px = np.clip(points[:, 0].astype(np.int64), 0, w - 1)
+    py = np.clip(points[:, 1].astype(np.int64), 0, h - 1)
+    src[py, px] = 0
+    _dist, labels = cv2.distanceTransformWithLabels(src, cv2.DIST_L2, 5, labelType=cv2.DIST_LABEL_PIXEL)
+    return labels.astype(np.int32)
+
+
+@register
+class VoronoiShatterSort(Effect):
+    id = "voronoi_sort"
+    name = "Voronoi Shatter Sorting"
+    category = "Sorting & Scrambling"
+    description = ("Breaks the image into irregular glass-like Voronoi cells and sorts the colours inside every "
+                   "cell from dark to light: recognisable from afar, melting stained glass up close.")
+    supports_alpha = True
+    params = (
+        iparam("cells", "Cells across", 40, 3, 600, tooltip="Number of cells across the long side."),
+        Param("sort_by", "Sort by", "choice", "luminance", choices=_KEY_CHOICES),
+        cparam("direction", "Sort direction", "vertical",
+               (("vertical", "Top to bottom"), ("horizontal", "Left to right"), ("diagonal", "Diagonal"),
+                ("radial", "Centre outwards"))),
+        bparam("reverse", "Light to dark", False),
+        iparam("lead", "Lead lines", 1, 0, 40, spatial=True, unit="px", tooltip="Width of the dark lines between cells."),
+        Param("lead_color", "Lead colour", COLOR, "#161616"),
+    )
+
+    def process(self, img, p, ctx):
+        h, w = img.shape[:2]
+        long_side, short_side = max(h, w), min(h, w)
+        n = max(2, int(round(p["cells"] ** 2 * short_side / long_side)))
+        pts = ctx.rng.random((n, 2)) * np.array([w, h], np.float64)
+        labels = voronoi_labels(h, w, pts).ravel().astype(np.int64)
+        ctx.check()
+        keys16 = np.clip(np.rint(_key_map(img, p["sort_by"]) * 65535.0), 0, 65535).astype(np.int64).ravel()
+        if p["reverse"]:
+            keys16 = 65535 - keys16
+        yy, xx = np.divmod(np.arange(h * w, dtype=np.int64), w)
+        d = p["direction"]
+        if d == "vertical":
+            pos = yy * w + xx
+        elif d == "horizontal":
+            pos = xx * h + yy
+        elif d == "diagonal":
+            pos = (xx + yy) * (w + 1) + xx
+        else:
+            cnt = np.bincount(labels).astype(np.float64)
+            cnt[cnt == 0] = 1
+            cx = np.bincount(labels, weights=xx) / cnt
+            cy = np.bincount(labels, weights=yy) / cnt
+            pos = np.rint(np.hypot(xx - cx[labels], yy - cy[labels]) * 16).astype(np.int64)
+        big = int(pos.max()) + 1
+        order_pos = np.argsort(labels * big + pos, kind="stable")
+        ctx.check()
+        order_col = np.argsort(labels * 65536 + keys16, kind="stable")
+        src = img.reshape(-1, 4)
+        out = np.empty_like(src)
+        out[order_pos] = src[order_col]
+        out = out.reshape(img.shape)
+        if p["lead"] > 0:
+            lab = labels.reshape(h, w)
+            border = np.zeros((h, w), np.uint8)
+            border[:, 1:] |= (lab[:, 1:] != lab[:, :-1])
+            border[1:, :] |= (lab[1:, :] != lab[:-1, :])
+            k = int(p["lead"])
+            if k > 1:
+                border = cv2.dilate(border, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k)))
+            col = np.array(color_to_rgb(p["lead_color"]), np.uint8)
+            out[border.astype(bool), :3] = col
         return out

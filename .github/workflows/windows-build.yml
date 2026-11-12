@@ -49,8 +49,8 @@ jobs:
           name: GlitchLab-win64
           if-no-files-found: warn
           path: |
-            dist/GlitchLab-*-setup-win64.exe
-            dist/GlitchLab-*-win64.zip
+            dist/GlitchLab-*setup-win64.exe
+            dist/GlitchLab-*win64.zip
             dist/selftest-report.txt
             dist/contact_sheet.png
             dist/smoke.png
@@ -67,7 +67,7 @@ jobs:
           $version = (Select-String -Path pyproject.toml -Pattern '^version = "(.+)"').Matches[0].Groups[1].Value
           $tag = "v$version"
           $files = @(Get-ChildItem dist -File | Where-Object { $_.Name -match '^GlitchLab-.*(setup-win64\.exe|win64\.zip)$|^selftest-report\.txt$' } | ForEach-Object { $_.FullName })
-          if ($files.Count -lt 3) { throw "Expected installer, zip and self-test report in dist/, found: $($files -join ', ')" }
+          if ($files.Count -lt 5) { throw "Expected versioned + stable installer and zip and the self-test report in dist/, found: $($files -join ', ')" }
           gh release view $tag *> $null
           if ($LASTEXITCODE -eq 0) {
             gh release upload $tag @files --clobber

@@ -26,6 +26,7 @@ from ..engine.model import EffectInstance
 from ..engine.ops import CHANNEL_CHOICES
 from ..engine.params import fparam
 from .param_widgets import NumberEditor, make_editor
+from .widgets import shrinkable_combo
 
 _MIX_PARAM = fparam("mix", "Mix", 1.0, 0.0, 1.0, tooltip="Strength: 0% returns the input unchanged, 100% is the full effect.")
 
@@ -147,6 +148,7 @@ class EffectPanel(QWidget):
             self.channel_combo = QComboBox()
             for v, label in CHANNEL_CHOICES:
                 self.channel_combo.addItem(label, v)
+            shrinkable_combo(self.channel_combo)
             self.channel_combo.setCurrentIndex(max(0, self.channel_combo.findData(inst.channels)))
             self.channel_combo.setToolTip("Apply to all colour channels, one channel, or only luminance (Y of YCbCr; chroma kept).")
             self.channel_combo.currentIndexChanged.connect(
@@ -196,6 +198,9 @@ class EffectPanel(QWidget):
                 box = QGroupBox(g)
                 fl = QFormLayout(box)
                 fl.setLabelAlignment(Qt.AlignRight)
+                # narrow panels put a control under its label instead of clipping it
+                fl.setRowWrapPolicy(QFormLayout.WrapLongRows)
+                fl.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
                 groups[g] = fl
                 order.append(g)
                 lay.addWidget(box)
@@ -225,9 +230,16 @@ class EffectPanel(QWidget):
                 label.setContextMenuPolicy(Qt.CustomContextMenu)
                 label.customContextMenuRequested.connect(
                     lambda pos, lab=label, pr=prm, cur=rng_set: self._range_menu(lab, pr, cur, pos))
-            groups[g].addRow(label, holder)
+            if prm.kind == "bool":
+                # an on/off option carries its own label and spans the row
+                ed.box.setText(prm.label)
+                label.hide()
+                groups[g].addRow(holder)
+                self._rows[prm.name] = (holder, holder)
+            else:
+                groups[g].addRow(label, holder)
+                self._rows[prm.name] = (label, holder)
             self._editors[prm.name] = ed
-            self._rows[prm.name] = (label, holder)
             self._locks[prm.name] = lock
         lay.addStretch(1)
         self.scroll.setWidget(body)

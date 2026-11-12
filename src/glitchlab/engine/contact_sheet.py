@@ -64,7 +64,7 @@ def build_contact_sheet(services: EngineServices | None = None, progress=None) -
     services = services or default_services()
     fx = fixtures_for_sheet()
     effects = sorted(REGISTRY.values(), key=lambda e: (e.category, e.name))
-    presets = [p for p in BUILTIN_PRESETS if all(f["effect"] in REGISTRY for f in p["stack"])][:8]
+    presets = [p for p in BUILTIN_PRESETS if all(f["effect"] in REGISTRY for f in p["stack"])]
     rows: list[tuple[str, str, Document | None]] = [("__orig__", "Original fixtures", None)]
     for e in effects:
         rows.append((e.id, e.name, Document.single([EffectInstance.create(e.id, seed=1234)], 77)))

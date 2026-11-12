@@ -1,4 +1,4 @@
-# Feature checklist — Glitch Lab 1.0.0
+# Feature checklist — Glitch Lab 1.1.0
 
 Legend
 
@@ -11,7 +11,7 @@ Legend
 
 Build hosts: Linux x86-64 (Python 3.13, FFmpeg 6.1.1) and the GitHub Actions
 Windows runner (Windows Server 2025, Python 3.13.17, bundled FFmpeg 8.1.3):
-332 tests passed there, 3 Linux-only tests skipped
+332 tests passed there for 1.0, 3 Linux-only tests skipped
 ([run 42212319268](https://github.com/Khartuts/glitch-lab/actions/runs/42212319268)).
 The GUI was exercised headlessly (offscreen) on Windows; an interactive session
 on a Windows 10/11 desktop has not been tested.
@@ -88,6 +88,23 @@ on a Windows 10/11 desktop has not been tested.
 | 19 | Mosaic bleed (neighbour/repeat/smear, chroma leakage, feather) | ✅ | |
 | 20 | Channel cross-modulation (displace/threshold/remap/ring) | ✅ | |
 
+### Added in 1.1
+
+| Effect | Status | Notes |
+|---|---|---|
+| Text & File Injection (typed text or any file → BMP pixels, 8-bit BMP colour table, PPM, JPEG scan data, JPEG quantisation tables, raw RGB; overwrite/insert/XOR/add) | ✅ | JPEG scan injection keeps marker protection, bounded attempts, failure reported |
+| Audio File Bending (WAV natively; MP3/FLAC/OGG/M4A via FFmpeg; mix/add/ring/envelope/gate; built-in beat/sweep/noise) | ✅ | FLAC decode tested through FFmpeg; MP3 depends on the bundled FFmpeg build |
+| Audio Reverb Smearing (synthetic cathedral/hall/room/plate, impulse-response file, reverse reverb) | ✅ | |
+| G.711 A-law codec in NumPy | ✅ | bit-exact with FFmpeg's pcm_alaw on all 256 codes / 65 536 sample values |
+| Halftone Screen (mono / CMYK / RGB; round, square, line, diamond; linearised spot functions) | ✅ | ink coverage within ±1 % of the requested tone |
+| CMYK Halftone Drift (wave-warped C/M screens, misregistration, plate slicing = halftone glitch hybrid) | ✅ | |
+| Ben-Day Dots (pop or process inks, overlapping dot plates, solid blacks, outlines) | ✅ | |
+| Voronoi Shatter Sorting (sort inside cells; vertical/horizontal/diagonal/radial; lead lines) | ✅ | colours provably stay inside their cell |
+| Topographic Contour Tearing | ✅ | |
+| Chromatic Aberration (lens) | ✅ | |
+| VHS & CRT (tape colour bleed, tracking, noise, scanlines, phosphor masks, bloom, vignette, curvature) | ✅ | |
+| Pixel sorting "between edges" | ✅ | |
+
 ## Selective processing & compositing
 
 | Feature | Status |
@@ -104,7 +121,7 @@ on a Windows 10/11 desktop has not been tested.
 
 | Feature | Status |
 |---|---|
-| Variation Grid 4 / 9 / 16, seeded & reproducible (batch seed) | ✅ |
+| Variation Grid with any count 1–64, seeded & reproducible (batch seed) | ✅ |
 | Limit to selected effects (*Include in variations*), parameter locks, seed locks, intensity, per-parameter ranges (right-click a parameter label) | ✅ |
 | Click restores exact recipe | ✅ |
 | Favourites (saved in projects), export selected variations / favourites | ✅ |
@@ -143,9 +160,19 @@ on a Windows 10/11 desktop has not been tested.
 | PyInstaller onedir spec (GUI + CLI executables, FFmpeg folder, docs, licences) | ✅ on Linux | built and verified on Linux from a scrubbed environment |
 | **Windows** package build (`packaging\build_windows.ps1`) | ✅ | GitHub Actions: tests, packaged self-test (incl. Sonify), contact sheet, headless GUI smoke test |
 | Windows installer (Inno Setup `packaging\installer.iss`) | ⚠️ | built in CI; installing/uninstalling not tested |
-| GitHub Actions Windows workflow (build + release) | ✅ | publishes the v1.0.0 release |
+| GitHub Actions Windows workflow (build + release) | ✅ | publishes the release for the version in pyproject.toml, with versioned and stable download names |
 | `fetch_ffmpeg.ps1` (BtbN LGPL 8.1, SHA-256 check) | ✅ | run in CI (FFmpeg n8.1.3) |
 | FFmpeg 6.x/8.x compatibility | ✅ | 6.1.1 (Linux) and 8.1.3 (Windows); 7.x untested |
+
+## 1.1 interface fixes
+
+| Fix | Status | Notes |
+|---|---|---|
+| Variations / render-status panel directly under the preview, same width and left edge | ✅ | `test_variations_panel_aligned_with_preview` |
+| Window never forced wider than the screen (elided status text, wrapping toolbars, screen-fitted first size, clamped restore) | ✅ | minimum width 756 px (was 1681 px, 2120 px with a long status message) |
+| Any number of variations (1–64) | ✅ | |
+| Existing file on export → Overwrite / Save as new numbered (`name_01`, `name_02` …) / Cancel, also for batch export | ✅ | |
+| Interactive check on a real Windows desktop | ⚠️ | 1.0 was confirmed working by the user; 1.1 fixes were verified offscreen |
 
 ## Known limitations
 

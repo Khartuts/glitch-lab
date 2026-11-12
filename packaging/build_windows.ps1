@@ -29,7 +29,7 @@ $root = Split-Path $PSScriptRoot -Parent
 Set-Location $root
 $venv = Join-Path $root ".venv-win"
 $py = Join-Path $venv "Scripts\python.exe"
-$version = "1.0.0"
+$version = (Select-String -Path (Join-Path $root "pyproject.toml") -Pattern '^version = "(.+)"').Matches[0].Groups[1].Value
 
 function Step($msg) { Write-Host "`n=== $msg ===" -ForegroundColor Magenta }
 function Check([string]$what) {
@@ -101,6 +101,7 @@ Write-Host "Packaged app verified: dist\selftest-report.txt, dist\contact_sheet.
 Step "Archive"
 $zip = Join-Path $root "dist\GlitchLab-$version-win64.zip"
 Compress-Archive -Path $app -DestinationPath $zip -Force
+Copy-Item $zip (Join-Path $root "dist\GlitchLab-win64.zip") -Force   # stable, version-free download name
 Write-Host "Portable package: $zip"
 
 if ($Installer) {
@@ -114,5 +115,6 @@ if ($Installer) {
         }
     }
     & $iscc (Join-Path $PSScriptRoot "installer.iss"); Check "Inno Setup compiler"
+    Copy-Item (Join-Path $root "dist\GlitchLab-$version-setup-win64.exe") (Join-Path $root "dist\GlitchLab-setup-win64.exe") -Force
     Write-Host "Installer: dist\GlitchLab-$version-setup-win64.exe"
 }

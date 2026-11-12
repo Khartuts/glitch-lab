@@ -231,6 +231,7 @@ class MainWindow(QMainWindow):
         self.cancel_btn.setEnabled(False)
         sl.addWidget(QLabel("RENDER"))
         sl.addWidget(self.status_label, 1)
+        self.mode_label.setMinimumWidth(80)
         self.mode_label.setMaximumWidth(160)
         sl.addWidget(self.mode_label)
         sl.addWidget(self.progress)
@@ -259,8 +260,8 @@ class MainWindow(QMainWindow):
         self.center_split.setStretchFactor(0, 3)
         self.center_split.setStretchFactor(1, 1)
         self.canvas.setMinimumSize(240, 180)
-        self.left_dock.setMinimumWidth(190)
-        self.right_dock.setMinimumWidth(290)
+        self.left_dock.setMinimumWidth(180)
+        self.right_dock.setMinimumWidth(310)
         self._docks_sized = False
 
     def showEvent(self, e):  # noqa: N802

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from PySide6.QtCore import QPoint, QRect, QSize, Qt
 from PySide6.QtGui import QPainter
-from PySide6.QtWidgets import QLabel, QLayout, QSizePolicy, QWidget
+from PySide6.QtWidgets import QComboBox, QLabel, QLayout, QSizePolicy, QWidget
 
 
 class ElidedLabel(QLabel):
@@ -111,6 +111,17 @@ class FlowLayout(QLayout):
             x = next_x
             line_h = max(line_h, hint.height())
         return y + line_h - rect.y() + m.bottom()
+
+
+def shrinkable_combo(combo: QComboBox, min_chars: int = 8) -> QComboBox:
+    """Let a combo box get narrower than its longest entry (the popup still
+    shows full texts), so long option names never widen a panel."""
+    combo.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)
+    combo.setMinimumContentsLength(min_chars)
+    combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+    view = combo.view()
+    view.setMinimumWidth(view.sizeHintForColumn(0) + 24)
+    return combo
 
 
 def fit_rect_to_screen(widget: QWidget, fraction: float = 0.9) -> QRect | None:

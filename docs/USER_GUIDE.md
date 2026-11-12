@@ -13,7 +13,7 @@ is never overwritten.
 | **Left: Library** | *Images*: thumbnails of the current folder (double-click to import). *Effects*: all effects by category (double-click to add). *Presets*: ready-made stacks. |
 | **Right: Stack** | The effect stack of the selected layer (top runs first) and the controls of the selected effect. |
 | **Right: Layers & Mask** | Layers, blend modes, opacity, and the selection mask tools. |
-| **Bottom** | Render status (progress, **Cancel**), the **Variations** grid, **Favourites** and the **Log**. |
+| **Under the preview** | Render status (progress, **Cancel**), the **Variations** grid, **Favourites** and the **Log**. Drag the divider between the preview and this panel to give the thumbnails more room. |
 
 ## 2. Your first glitch (2 minutes)
 
@@ -28,6 +28,9 @@ is never overwritten.
 6. **Export** (Ctrl+E): choose PNG (keeps transparency), JPEG (pick a background
    colour for transparent areas) or WebP, the size and the file name pattern.
    Tick *Write JSON recipe* to save the exact settings next to the image.
+   If a file with that name already exists you choose: **Overwrite** it, or
+   **Save as new** — the new image gets the next free number (`name_01.png`,
+   `name_02.png` …) and the old one is kept.
 
 ## 3. Working with the stack
 
@@ -57,9 +60,53 @@ is never overwritten.
   FFmpeg audio filters on them: echo, phaser, flanger, tremolo, bit crusher,
   EQ and filters. Nothing is ever played. Needs FFmpeg (bundled; see
   *Help › Check FFmpeg*).
+* **Text & File Injection** — the databending you would otherwise do in a
+  hex or text editor. Type text (lyrics, GPS coordinates, a poem) *or* choose
+  **any file** (a .txt, a .wav or .mp3, a PDF …): its raw bytes are written
+  into the encoded image and the decoder misreads them. Choose where:
+  - *BMP pixel data* with **Insert** → shifted scanlines and diagonal tears;
+    **Overwrite / XOR / Add** → blocks of noise and neon colour.
+  - *8-bit BMP colour table* → the whole palette is remapped (XOR gives neon).
+  - *JPEG quantisation tables* → blocky, posterised, neon compression.
+  - *JPEG scan data* (experimental) → smeared, broken blocks.
+  - *PPM* or *raw RGB bytes* → stripes and colour-channel rotation.
+  *Injections* sets how many pieces are pasted and *Bytes per injection* how
+  big each piece is; the file is read piece by piece, so a long song spreads
+  through the whole image.
+* **Audio File Bending** — load your own sound (WAV directly; MP3, FLAC, OGG,
+  M4A via the bundled FFmpeg) or use the built-in beat, and bend the pixels
+  with it: *Mix*, *Add*, *Ring modulate*, *Envelope follower* (the music's
+  loudness pumps the image) or *Gate* (loud parts replace pixels).
+* **Audio Reverb Smearing** — the Audacity "reverb on a raw photo" trick:
+  pixels pass through a cathedral, hall or room reverb (or your own
+  impulse-response file), so highlights cast ghostly echoes. *Reverse reverb*
+  makes the ghosts appear before the highlights.
 * **Compression Decay** saves the image as JPEG over and over.
 * **Data Reinterpretation** reads the raw bytes with the wrong row width,
   channel order or layout.
+
+## 4b. Print, analog and geometry effects
+
+* **Halftone Screen** — dots that are large in shadows and tiny in
+  highlights: mono, CMYK colour halftone (classic screen angles) or RGB dots;
+  round, square, line or diamond dots.
+* **CMYK Halftone Drift** — separate cyan, magenta, yellow and black dot
+  plates; a wave warps only the chosen plates (cyan + magenta by default) so
+  the overlapping screens shimmer with moiré. *Misregistration* shifts plates
+  out of alignment and *Plate slicing* tears bands of single plates sideways
+  — the "Halftone Glitch Hybrid".
+* **Ben-Day Dots** — Lichtenstein-style flat areas of uniform dots (pop
+  red/yellow/blue or process CMY), solid blacks and inked outlines.
+* **Voronoi Shatter Sorting** — the image breaks into glass-like cells whose
+  colours are sorted dark to light; *Lead lines* draw the stained-glass frame.
+* **Topographic Contour Tearing** — brightness becomes contour rings; every
+  n-th ring slides sideways like a tectonic plate.
+* **Pixel Sorting** — besides brightness/hue/saturation thresholds, *Between
+  edges* sorts the runs between detected edges for long melting streaks.
+* **RGB Channel Displacement** shifts colour channels; **Chromatic
+  Aberration (lens)** adds lens-like colour fringes that grow towards the edges.
+* **VHS & CRT** — smeared tape colour, tracking errors, static, scanlines,
+  phosphor mask, bloom, vignette and screen curvature.
 
 ## 5. Selective processing: layers and masks
 
@@ -78,10 +125,10 @@ original image.
 
 ## 6. Exploring: Variation Grid and favourites
 
-1. Open the **Variations** tab, choose 4, 9 or 16 and an **Intensity**.
+1. Open the **Variations** tab, type any **Count** from 1 to 64 and choose an **Intensity**.
 2. Click **Generate** (G). Each thumbnail is a complete recipe.
 3. **Click** a thumbnail to restore exactly that recipe (undoable).
-   Ctrl/Shift-click to select several, then **★ Add to favourites** or
+   Ctrl/Shift-click to select several, then **★ Favourite** or
    **Export selected…** (full resolution, with JSON recipes).
 4. Control what may change: untick *Include in variations* on an effect, click
    **lock** next to a parameter, or lock an effect's seed. The *Batch seed*
@@ -92,7 +139,9 @@ original image.
 Double-click a preset to replace the selected layer's stack (right-click to
 append). Built-in: Broken Broadcast, Acid Chromatic, Industrial Decay,
 Corrupted Memory, Spectral Ghost, Scanner Failure, Digital Rust,
-Photocopier Meltdown, plus a few simple ones. *Save stack as preset…* stores
+Photocopier Meltdown, Pop Art Misprint, Comic Moiré, VHS Night, Stained Glass
+Meltdown, Cathedral Ghosts, Lyric Injection, Tectonic Portrait, plus a few
+simple ones. *Save stack as preset…* stores
 your own (marked ★).
 
 ## 8. Projects

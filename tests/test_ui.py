@@ -361,3 +361,17 @@ def test_export_conflict_save_as_new(app, win, photo_path, tmp_path, monkeypatch
     dlg = make_dialog()
     dlg._accept()
     assert dlg.request is None
+
+
+def test_every_effect_panel_fits_the_dock(app, win):
+    """No effect's controls may be wider than the right panel (no clipping)."""
+    from glitchlab.engine.effects.base import REGISTRY
+    from glitchlab.engine.model import EffectInstance
+    app.processEvents()
+    viewport = win.right_dock.minimumWidth() - 12
+    for eid in sorted(REGISTRY):
+        win.effect_panel.set_instance(EffectInstance.create(eid))
+        app.processEvents()
+        need = win.effect_panel.scroll.widget().minimumSizeHint().width()
+        assert need <= viewport, (eid, need, viewport)
+    assert win.minimumSizeHint().width() <= 800

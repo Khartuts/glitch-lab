@@ -8,6 +8,9 @@ from . import sonify  # noqa: F401
 from . import colour  # noqa: F401
 from . import frequency  # noqa: F401
 from . import simulation  # noqa: F401
+from . import print as print_effects  # noqa: F401
+from . import analog  # noqa: F401
+from . import audio  # noqa: F401
 from .base import CATEGORIES, REGISTRY, Effect, apply_effect, get_effect  # noqa: F401
 
 
