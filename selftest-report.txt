@@ -1,0 +1,64 @@
+Glitch Lab 1.1.0 self-test — Windows-2025Server-10.0.26100-SP0 — Python 3.13.17
+Executable: D:\a\glitch-lab\glitch-lab\dist\GlitchLab\glitchlab-cli.exe  frozen=True
+  glitchlab: 1.1.0
+  python: 3.13.17
+  platform: Windows-2025Server-10.0.26100-SP0
+  numpy: 2.3.5
+  pillow: 12.3.0
+  opencv: 4.13.0
+  ffmpeg: ffmpeg version n8.1.3-35-gf1acb0a266-20261112 Copyright (c) 2000-2026 the FFmpeg developers (bundled with Glitch Lab: D:\a\glitch-lab\glitch-lab\dist\GlitchLab\ffmpeg\ffmpeg.exe)
+
+PASS  image import/export  (0.09s) PNG/JPEG/WEBP
+PASS  effect audio_file_bend  (0.03s) f1b883d83aa4
+PASS  effect audio_reverb  (0.29s) 1f000a554c75
+PASS  effect benday  (0.05s) e891c9328a7c
+PASS  effect bitplane  (0.00s) 04c5e68c0f63
+PASS  effect block_scramble  (0.00s) e8256928902f
+PASS  effect cellular  (0.09s) 6ee70f8536ea
+PASS  effect channel_shift  (0.00s) ddc063e845b9
+PASS  effect chromatic  (0.01s) 5489e683e328
+PASS  effect cmyk_drift  (0.02s) 7fcedceb1cfb
+PASS  effect contour_tear  (0.01s) 9e240c1ca5c8
+PASS  effect cross_mod  (0.00s) be73f4f3118d
+PASS  effect data_injection  (0.00s) 9f5c981b016a
+PASS  effect displace_map  (0.01s) c8678cbd71a2
+PASS  effect error_trails  (0.01s) 02e57054f15e
+PASS  effect feedback  (0.01s) 9351ff7fa8da
+PASS  effect halftone  (0.01s) 43dcde7f048b
+PASS  effect hex_corrupt  (0.01s) d9345ae88166
+PASS  effect jpeg_decay  (0.01s) 16ce04c2b8a5
+PASS  effect mosaic_bleed  (0.01s) 186b537dba78
+PASS  effect palette  (0.00s) 71e63733fade
+PASS  effect pixel_sort  (0.01s) 649cfc2c0748
+PASS  effect reaction_diffusion  (2.32s) 57bfa1d33e54
+PASS  effect reinterpret  (0.00s) 553733eb3d70
+PASS  effect row_drift  (0.00s) e30cd7ff3242
+PASS  effect scanline_tear  (0.00s) 5ee663316d2b
+PASS  effect slitscan  (0.00s) 9644ccf478be
+PASS  effect sonify  (0.20s) 6b5e05d3507f
+PASS  effect spectral  (0.01s) 6671f41d97f2
+PASS  effect vhs_crt  (0.02s) 7b63e46f1ed7
+PASS  effect voronoi_sort  (0.01s) bae89bd0f993
+PASS  preset Broken Broadcast  (0.02s) 57ef0954ff21
+PASS  preset Acid Chromatic  (0.01s) 25a6b8c92c55
+PASS  preset Industrial Decay  (0.03s) 74f498424749
+PASS  preset Corrupted Memory  (0.01s) bfd7f7bbf14c
+PASS  preset Spectral Ghost  (0.03s) 49cb61028e40
+PASS  preset Scanner Failure  (0.01s) 721d6ab0b36e
+PASS  preset Digital Rust  (0.80s) 4bfd21bebed0
+PASS  preset Photocopier Meltdown  (0.03s) 48389c471802
+PASS  preset Pop Art Misprint  (0.02s) b55aa03df4d6
+PASS  preset Comic Moiré  (0.02s) c5a12192461c
+PASS  preset VHS Night  (0.02s) e9e089d3711f
+PASS  preset Stained Glass Meltdown  (0.01s) 4260b206f0d9
+PASS  preset Cathedral Ghosts  (0.11s) 501fe6381cd4
+PASS  preset Lyric Injection  (0.01s) a17c9adc06b0
+PASS  preset Tectonic Portrait  (0.01s) 547966c5177b
+PASS  preset Tape Snag  (0.01s) 0621c23714fa
+PASS  preset Sorted Sunset  (0.01s) 6c045a48a0b5
+PASS  preset Tile Riot  (0.00s) 70a977484865
+PASS  project save/load reproduces render  (0.05s) 
+
+FFmpeg: OK — ffmpeg version n8.1.3-35-gf1acb0a266-20261112 Copyright (c) 2000-2026 the FFmpeg developers (bundled with Glitch Lab: D:\a\glitch-lab\glitch-lab\dist\GlitchLab\ffmpeg\ffmpeg.exe)
+
+RESULT: PASSED
