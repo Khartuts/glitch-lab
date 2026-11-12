@@ -9,6 +9,8 @@ restores its exact recipe.  Randomisation is limited to
 * effect seeds that are not locked (if ``reroll_seeds``),
 * the global seed only if ``vary_global_seed``.
 
+Any count from 1 to 64 can be requested.
+
 The same base document + settings (including ``batch_seed``) always yields
 the same variations.
 """
@@ -22,6 +24,9 @@ import numpy as np
 from .effects.base import SEED_MASK, get_effect
 from .model import Document
 
+MIN_VARIATIONS = 1
+MAX_VARIATIONS = 64
+#: Quick choices offered by older versions (kept for compatibility).
 VARIATION_COUNTS = (4, 9, 16)
 
 
@@ -85,7 +90,5 @@ def make_variation(base: Document, settings: VariationSettings, index: int) -> D
 
 
 def generate_variations(base: Document, settings: VariationSettings) -> list[Document]:
-    count = int(settings.count)
-    if count not in VARIATION_COUNTS:
-        count = min(VARIATION_COUNTS, key=lambda c: abs(c - count))
+    count = int(min(max(int(settings.count), MIN_VARIATIONS), MAX_VARIATIONS))
     return [make_variation(base, settings, i) for i in range(count)]

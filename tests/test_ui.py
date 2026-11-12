@@ -295,3 +295,69 @@ def test_variation_range_from_ui(app, win, photo_path):
         assert 10 <= v.layer.stack[0].params["displacement"] <= 20
     win.undo()
     assert win.find(uid).ranges == {}
+
+
+# ------------------------------------------------------------- v1.1 UI fixes
+def test_window_fits_small_screens_and_long_status(app, win):
+    """Bug 2: the window must never be forced wider than the screen."""
+    min_w = win.minimumSizeHint().width()
+    assert min_w <= 800, min_w
+    win.set_status("x" * 600 + " very long failure message " * 20, "error")
+    app.processEvents()
+    assert win.minimumSizeHint().width() <= 800
+    win.resize(1024, 640)
+    app.processEvents()
+    assert win.width() <= 1024 and win.height() <= 640
+
+
+def test_variations_panel_aligned_with_preview(app, win):
+    """Bug 1: the variations panel sits directly under the preview, same width and left edge."""
+    win.resize(1280, 800)
+    app.processEvents()
+    c = win.canvas.mapTo(win, win.canvas.rect().topLeft())
+    b = win.bottom_panel.mapTo(win, win.bottom_panel.rect().topLeft())
+    assert c.x() == b.x() and win.canvas.width() == win.bottom_panel.width()
+    assert b.y() > c.y()
+    assert win.bottom_panel.parent() is win.center_split
+
+
+def test_any_variation_count(app, win, photo_path):
+    """Bug 3: any count 1..64, not just 4/9/16."""
+    win.import_image(photo_path, interactive=False)
+    win.add_effect("scanline_tear")
+    win.variations.count.setValue(7)
+    s = win.variations.settings()
+    assert s.count == 7
+    win.generate_variations(s)
+    assert pump(app, 30, lambda: idle(win) and len(win._var_thumbs) == 7)
+    assert win.variations.grid.count() == 7
+    assert win.variations.count.maximum() == 64
+
+
+def test_export_conflict_save_as_new(app, win, photo_path, tmp_path, monkeypatch):
+    """Bug 4: exporting to an existing name offers overwrite or save-as-new numbering."""
+    from glitchlab.ui import export_dialog as ed
+    win.import_image(photo_path, interactive=False)
+    folder = tmp_path / "exp"
+    folder.mkdir()
+    (folder / "photo_glitch_1.png").write_bytes(b"old")
+
+    def make_dialog():
+        return ed.ExportDialog(win, render_size=(400, 300), source_name="photo", source_path=photo_path, seed=1,
+                               preset="", folder=str(folder), pattern="{name}_glitch_{seed}")
+
+    monkeypatch.setattr(ed, "ask_conflict", lambda *a, **k: "number")
+    dlg = make_dialog()
+    dlg._accept()
+    assert dlg.request.path == str(folder / "photo_glitch_1_01.png") and not dlg.request.opts.overwrite
+    win.run_export(dlg.request)
+    assert pump(app, 20, lambda: (folder / "photo_glitch_1_01.png").exists() and idle(win))
+    assert (folder / "photo_glitch_1.png").read_bytes() == b"old"
+    monkeypatch.setattr(ed, "ask_conflict", lambda *a, **k: "overwrite")
+    dlg = make_dialog()
+    dlg._accept()
+    assert dlg.request.path == str(folder / "photo_glitch_1.png") and dlg.request.opts.overwrite
+    monkeypatch.setattr(ed, "ask_conflict", lambda *a, **k: None)
+    dlg = make_dialog()
+    dlg._accept()
+    assert dlg.request is None

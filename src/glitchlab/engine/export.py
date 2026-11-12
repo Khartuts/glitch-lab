@@ -8,7 +8,7 @@ import json
 import os
 import platform
 import re
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 
 import numpy as np
 
@@ -184,14 +184,41 @@ def export_document(source_img: np.ndarray, doc: Document, path: str, opts: Expo
                            services=services, warnings=res.warnings)
 
 
-def batch_export(source_img: np.ndarray, docs: list[Document], folder: str, pattern: str,
-                 opts: ExportOptions, *, source: SourceInfo, write_recipe: bool = True,
-                 services: EngineServices | None = None, cancel: CancelToken | None = None,
-                 progress=None) -> list[ExportReport]:
-    """Export several recipes (e.g. selected variations) at full resolution."""
-    cancel = cancel or CancelToken()
-    reports = []
-    paths = []
+_NUMBER_SUFFIX = re.compile(r"^(.*)_(\d{2,4})$")
+
+
+def sidecar_path(path: str) -> str:
+    return os.path.splitext(path)[0] + ".json"
+
+
+def path_taken(path: str, *, with_recipe: bool = False, reserved: set | None = None) -> bool:
+    if reserved and os.path.normcase(os.path.abspath(path)) in reserved:
+        return True
+    return os.path.exists(path) or (with_recipe and os.path.exists(sidecar_path(path)))
+
+
+def next_free_path(path: str, *, with_recipe: bool = False, reserved: set | None = None, limit: int = 9999) -> str:
+    """First free numbered variant of ``path``: ``name_01.png``, ``name_02.png`` ...
+
+    A name that already ends in ``_NN`` continues counting from there, so
+    saving ``art_03.png`` again proposes ``art_04.png``.  When
+    ``with_recipe`` is set, the JSON sidecar name must be free too.
+    """
+    folder, fname = os.path.split(path)
+    stem, ext = os.path.splitext(fname)
+    m = _NUMBER_SUFFIX.match(stem)
+    base, start = (m.group(1), int(m.group(2)) + 1) if m else (stem, 1)
+    for n in range(start, limit + 1):
+        cand = os.path.join(folder, f"{base}_{n:02d}{ext}")
+        if not path_taken(cand, with_recipe=with_recipe, reserved=reserved):
+            return cand
+    raise ExportError(f"No free file name left for '{fname}'.")
+
+
+def plan_batch_paths(docs: list[Document], folder: str, pattern: str, opts: ExportOptions, *,
+                     source: SourceInfo) -> list[str]:
+    """Output paths for a batch (duplicates inside the batch get an index)."""
+    paths: list[str] = []
     for i, doc in enumerate(docs):
         fn = format_filename(pattern, name=source.name, seed=doc.global_seed, preset=doc.preset_name,
                              index=i + 1, width=source.width, height=source.height,
@@ -201,11 +228,48 @@ def batch_export(source_img: np.ndarray, docs: list[Document], folder: str, patt
             base, ext = os.path.splitext(p)
             p = f"{base}_{i + 1:02d}{ext}"
         paths.append(p)
-    if not opts.overwrite:
-        existing = [p for p in paths if os.path.exists(p)]
-        if existing:
-            raise ExportError(f"{len(existing)} file(s) already exist, e.g. '{os.path.basename(existing[0])}'.",
-                              detail="exists")
+    return paths
+
+
+CONFLICT_POLICIES = ("error", "overwrite", "number")
+
+
+def resolve_batch_paths(paths: list[str], policy: str, *, with_recipe: bool) -> list[str]:
+    """Apply a conflict policy: ``error`` (refuse), ``overwrite`` or ``number``
+    (existing names get the next free ``_NN`` suffix)."""
+    if policy not in CONFLICT_POLICIES:
+        raise ValueError(policy)
+    existing = [p for p in paths if path_taken(p, with_recipe=with_recipe)]
+    if not existing or policy == "overwrite":
+        return list(paths)
+    if policy == "error":
+        raise ExportError(f"{len(existing)} file(s) already exist, e.g. '{os.path.basename(existing[0])}'.",
+                          detail="exists")
+    out: list[str] = []
+    reserved: set[str] = {os.path.normcase(os.path.abspath(p)) for p in paths}
+    for p in paths:
+        if path_taken(p, with_recipe=with_recipe):
+            p = next_free_path(p, with_recipe=with_recipe, reserved=reserved)
+            reserved.add(os.path.normcase(os.path.abspath(p)))
+        out.append(p)
+    return out
+
+
+def batch_export(source_img: np.ndarray, docs: list[Document], folder: str, pattern: str,
+                 opts: ExportOptions, *, source: SourceInfo, write_recipe: bool = True,
+                 services: EngineServices | None = None, cancel: CancelToken | None = None,
+                 progress=None, on_conflict: str | None = None) -> list[ExportReport]:
+    """Export several recipes (e.g. selected variations) at full resolution.
+
+    ``on_conflict``: ``error`` (default unless ``opts.overwrite``), ``overwrite``
+    or ``number`` (save existing names as ``name_01``, ``name_02`` ...).
+    """
+    cancel = cancel or CancelToken()
+    policy = on_conflict or ("overwrite" if opts.overwrite else "error")
+    paths = resolve_batch_paths(plan_batch_paths(docs, folder, pattern, opts, source=source), policy,
+                                with_recipe=write_recipe)
+    opts = replace(opts, overwrite=(policy == "overwrite"))
+    reports = []
     for i, (doc, p) in enumerate(zip(docs, paths)):
         cancel.check()
 

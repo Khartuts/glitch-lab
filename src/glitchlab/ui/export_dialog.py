@@ -26,8 +26,41 @@ from PySide6.QtWidgets import (
 )
 
 from ..engine.errors import ExportError
-from ..engine.export import PATTERN_TOKENS, format_filename
+from ..engine.export import PATTERN_TOKENS, format_filename, next_free_path, sidecar_path
 from ..engine.image_io import ExportOptions, webp_supported
+
+
+def ask_conflict(parent, existing: list[str], numbered: str | None = None, *, batch: bool = False) -> str | None:
+    """Ask what to do when export targets already exist.
+
+    Returns ``"overwrite"``, ``"number"`` (save as new numbered file(s)) or
+    ``None`` (cancel).
+    """
+    box = QMessageBox(parent)
+    box.setIcon(QMessageBox.Question)
+    box.setWindowTitle("File already exists")
+    shown = existing[:6]
+    more = f"\n… and {len(existing) - len(shown)} more" if len(existing) > len(shown) else ""
+    box.setText(("These files already exist:" if len(existing) > 1 else "This file already exists:") +
+                "\n\n" + "\n".join(os.path.basename(p) for p in shown) + more)
+    if batch:
+        box.setInformativeText("Overwrite them, or keep them and save the new images with the next free number "
+                               "(name_01, name_02 …)?")
+        new_label = "Save as new (numbered)"
+    else:
+        box.setInformativeText(f"Overwrite it, or save the new image as '{os.path.basename(numbered)}'?")
+        new_label = f"Save as {os.path.basename(numbered)}"
+    b_new = box.addButton(new_label, QMessageBox.AcceptRole)
+    b_over = box.addButton("Overwrite", QMessageBox.DestructiveRole)
+    box.addButton(QMessageBox.Cancel)
+    box.setDefaultButton(b_new)
+    box.exec()
+    clicked = box.clickedButton()
+    if clicked is b_new:
+        return "number"
+    if clicked is b_over:
+        return "overwrite"
+    return None
 
 
 @dataclass
@@ -273,15 +306,18 @@ class ExportDialog(QDialog):
                 QMessageBox.warning(self, "Export", "That is the source image. Glitch Lab never overwrites "
                                     "the original - choose another name.")
                 return
-            targets = [path] + ([os.path.splitext(path)[0] + ".json"] if self.recipe.isChecked() else [])
+            with_recipe = self.recipe.isChecked()
+            targets = [path] + ([sidecar_path(path)] if with_recipe else [])
             existing = [t for t in targets if os.path.exists(t)]
             if existing:
-                r = QMessageBox.question(self, "Replace file?",
-                                         "These files already exist:\n\n" + "\n".join(existing) +
-                                         "\n\nReplace them?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-                if r != QMessageBox.Yes:
+                numbered = next_free_path(path, with_recipe=with_recipe)
+                choice = ask_conflict(self, existing, numbered)
+                if choice is None:
                     return
-                opts.overwrite = True
+                if choice == "overwrite":
+                    opts.overwrite = True
+                else:
+                    path = numbered
         self.request = ExportRequest(opts=opts, folder=folder, pattern=self._pattern(), path=path,
                                      write_recipe=self.recipe.isChecked())
         self.accept()

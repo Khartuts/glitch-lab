@@ -34,7 +34,15 @@ from PySide6.QtWidgets import (
 from .. import APP_NAME, __version__
 from ..engine.effects.base import get_effect
 from ..engine.errors import Cancelled, GlitchLabError, ImageTooLargeError
-from ..engine.export import SourceInfo, batch_export, export_rendered, load_recipe, render_signature
+from ..engine.export import (
+    SourceInfo,
+    batch_export,
+    export_rendered,
+    load_recipe,
+    path_taken,
+    plan_batch_paths,
+    render_signature,
+)
 from ..engine.history import History
 from ..engine.image_io import DEFAULT_MAX_PIXELS, file_filter_string, load_image, probe_image
 from ..engine.image_io import thumbnail_rgba
@@ -56,11 +64,12 @@ from ..engine.settings import Settings
 from . import theme
 from .canvas import TOOL_BRUSH, TOOL_ERASE, TOOL_PAN, TOOL_RECT, PreviewCanvas
 from .effect_panel import EffectPanel
-from .export_dialog import ExportDialog
+from .export_dialog import ExportDialog, ask_conflict
 from .layers_panel import LayersPanel
 from .panels import EffectLibrary, ImageBrowser, LogView, PresetList, QtLogHandler, StackPanel
 from .qt_image import mask_overlay_qimage, rgba_to_pixmap
 from .variations_panel import FavouritesPanel, VariationsPanel
+from .widgets import ElidedLabel, fit_rect_to_screen
 from .workers import TaskRunner
 
 log = logging.getLogger(__name__)
@@ -104,7 +113,7 @@ class MainWindow(QMainWindow):
         self._project_hash: str | None = None
 
         self.setWindowTitle(APP_NAME)
-        self.resize(1500, 920)
+        self.resize(1200, 760)
         self._build_ui()
         self._build_actions()
         self._build_menus()
@@ -129,13 +138,17 @@ class MainWindow(QMainWindow):
     # ================================================================ layout
     def _build_ui(self) -> None:
         self.setDockNestingEnabled(True)
-        self.setCorner(Qt.BottomLeftCorner, Qt.LeftDockWidgetArea)
-        self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
         self.canvas = PreviewCanvas()
         self.canvas.files_dropped.connect(lambda paths: self.import_image(paths[0]))
         self.canvas.rect_drawn.connect(self.add_mask_shape)
         self.canvas.stroke_drawn.connect(self.add_mask_shape)
-        self.setCentralWidget(self.canvas)
+        # The preview and the variations / render-status panel share one vertical
+        # splitter, so the panel is always exactly as wide as the preview and
+        # aligned with it (it can be resized, but never floats or drifts).
+        self.center_split = QSplitter(Qt.Vertical)
+        self.center_split.setChildrenCollapsible(False)
+        self.center_split.addWidget(self.canvas)
+        self.setCentralWidget(self.center_split)
 
         # Left: image browser + effect library + presets
         left = QSplitter(Qt.Vertical)
@@ -204,8 +217,8 @@ class MainWindow(QMainWindow):
         strip.setObjectName("statusStrip")
         sl = QHBoxLayout(strip)
         sl.setContentsMargins(8, 4, 8, 4)
-        self.status_label = QLabel("Ready")
-        self.mode_label = QLabel("")
+        self.status_label = ElidedLabel("Ready")
+        self.mode_label = ElidedLabel("")
         self.mode_label.setObjectName("muted")
         self.progress = QProgressBar()
         self.progress.setRange(0, 1000)
@@ -218,6 +231,7 @@ class MainWindow(QMainWindow):
         self.cancel_btn.setEnabled(False)
         sl.addWidget(QLabel("RENDER"))
         sl.addWidget(self.status_label, 1)
+        self.mode_label.setMaximumWidth(160)
         sl.addWidget(self.mode_label)
         sl.addWidget(self.progress)
         sl.addWidget(self.cancel_btn)
@@ -239,18 +253,53 @@ class MainWindow(QMainWindow):
         self.log_view = LogView()
         self.bottom_tabs.addTab(self.log_view, "Log")
         bl.addWidget(self.bottom_tabs, 1)
-        self.bottom_dock = self._dock("Variations · Render status", bottom, Qt.BottomDockWidgetArea, "bottomDock")
-        self.left_dock.setMinimumWidth(230)
-        self.right_dock.setMinimumWidth(350)
-        self.bottom_dock.setMinimumHeight(170)
+        bottom.setMinimumHeight(150)
+        self.bottom_panel = bottom
+        self.center_split.addWidget(bottom)
+        self.center_split.setStretchFactor(0, 3)
+        self.center_split.setStretchFactor(1, 1)
+        self.canvas.setMinimumSize(240, 180)
+        self.left_dock.setMinimumWidth(190)
+        self.right_dock.setMinimumWidth(290)
         self._docks_sized = False
 
     def showEvent(self, e):  # noqa: N802
         super().showEvent(e)
-        if not self._docks_sized and not self.settings.data.get("window_state"):
-            self._docks_sized = True
-            self.resizeDocks([self.left_dock, self.right_dock], [285, 400], Qt.Horizontal)
-            self.resizeDocks([self.bottom_dock], [290], Qt.Vertical)
+        if self._docks_sized:
+            return
+        self._docks_sized = True
+        if not self.settings.data.get("window_geometry"):
+            r = fit_rect_to_screen(self, 0.92)
+            if r is not None:
+                self.setGeometry(r)
+        else:
+            self._clamp_to_screen()
+        if not self.settings.data.get("window_state_v2"):
+            w = self.width()
+            self.resizeDocks([self.left_dock, self.right_dock], [max(190, int(w * 0.17)), max(300, int(w * 0.25))],
+                             Qt.Horizontal)
+        split = self.settings.data.get("center_split")
+        if split:
+            self.center_split.restoreState(QByteArray.fromBase64(split.encode()))
+        else:
+            h = self.center_split.height()
+            self.center_split.setSizes([int(h * 0.6), int(h * 0.4)])
+
+    def _clamp_to_screen(self) -> None:
+        """Make sure a restored window is fully visible on the current screen."""
+        screen = self.screen()
+        if screen is None:
+            return
+        avail = screen.availableGeometry()
+        g = self.frameGeometry()
+        w = min(self.width(), avail.width() - (g.width() - self.width()))
+        h = min(self.height(), avail.height() - (g.height() - self.height()))
+        if (w, h) != (self.width(), self.height()):
+            self.resize(max(w, 640), max(h, 480))
+            g = self.frameGeometry()
+        x = min(max(g.x(), avail.x()), avail.right() - g.width() + 1)
+        y = min(max(g.y(), avail.y()), avail.bottom() - g.height() + 1)
+        self.move(max(x, avail.x()), max(y, avail.y()))
 
     def _dock(self, title: str, widget: QWidget, area, name: str) -> QDockWidget:
         d = QDockWidget(title, self)
@@ -419,7 +468,7 @@ class MainWindow(QMainWindow):
 
     def _restore_window(self) -> None:
         g = self.settings.data.get("window_geometry")
-        s = self.settings.data.get("window_state")
+        s = self.settings.data.get("window_state_v2")
         try:
             if g:
                 self.restoreGeometry(QByteArray.fromBase64(g.encode()))
@@ -1104,7 +1153,8 @@ class MainWindow(QMainWindow):
         self.browser.shutdown()
         try:
             self.settings.data["window_geometry"] = bytes(self.saveGeometry().toBase64()).decode()
-            self.settings.data["window_state"] = bytes(self.saveState().toBase64()).decode()
+            self.settings.data["window_state_v2"] = bytes(self.saveState().toBase64()).decode()
+            self.settings.data["center_split"] = bytes(self.center_split.saveState().toBase64()).decode()
             self.settings.save()
         except Exception:  # pragma: no cover
             pass
@@ -1389,9 +1439,17 @@ class MainWindow(QMainWindow):
                            batch_count=len(docs), has_alpha=bool(self.image.had_alpha))
         if dlg.exec() != ExportDialog.Accepted or dlg.request is None:
             return
-        self.run_batch_export(docs, dlg.request)
+        req = dlg.request
+        planned = plan_batch_paths(docs, req.folder, req.pattern, req.opts, source=info)
+        existing = [p for p in planned if path_taken(p, with_recipe=req.write_recipe)]
+        policy = "error"
+        if existing:
+            policy = ask_conflict(self, existing, batch=True)
+            if policy is None:
+                return
+        self.run_batch_export(docs, req, on_conflict=policy)
 
-    def run_batch_export(self, docs: list[Document], req) -> None:
+    def run_batch_export(self, docs: list[Document], req, on_conflict: str | None = None) -> None:
         info = self._source_info()
         src, services = self.image.rgba, self.services
         docs = [d.copy() for d in docs]
@@ -1400,7 +1458,8 @@ class MainWindow(QMainWindow):
         def work(token, progress):
             try:
                 return batch_export(src, docs, req.folder, req.pattern, req.opts, source=info,
-                                    write_recipe=req.write_recipe, services=services, cancel=token, progress=progress)
+                                    write_recipe=req.write_recipe, services=services, cancel=token, progress=progress,
+                                    on_conflict=on_conflict)
             except GlitchLabError as exc:
                 if exc.detail == "exists":
                     raise GlitchLabError(exc.message + " Choose another folder or pattern.") from exc

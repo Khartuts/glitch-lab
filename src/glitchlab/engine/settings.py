@@ -84,7 +84,8 @@ class Settings:
         "export_pattern": "{name}_glitch_{seed}",
         "show_checkerboard": True,
         "window_geometry": "",
-        "window_state": "",
+        "window_state_v2": "",
+        "center_split": "",
     }
 
     def __init__(self, path: Path | None = None):
