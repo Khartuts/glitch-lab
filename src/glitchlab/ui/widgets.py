@@ -13,8 +13,9 @@ class ElidedLabel(QLabel):
     Long text is shown with "…" and the full text is available as tooltip.
     """
 
-    def __init__(self, text: str = "", parent: QWidget | None = None):
+    def __init__(self, text: str = "", parent: QWidget | None = None, mode=Qt.ElideRight):
         super().__init__(text, parent)
+        self._mode = mode
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         self.setMinimumWidth(20)
         self._full = text
@@ -40,7 +41,7 @@ class ElidedLabel(QLabel):
         p = QPainter(self)
         p.setPen(self.palette().color(self.foregroundRole()))
         rect = self.contentsRect()
-        text = self.fontMetrics().elidedText(self._full, Qt.ElideRight, rect.width())
+        text = self.fontMetrics().elidedText(self._full, self._mode, rect.width())
         p.drawText(rect, int(self.alignment() | Qt.AlignVCenter), text)
         p.end()
 

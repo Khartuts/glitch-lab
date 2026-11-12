@@ -384,3 +384,13 @@ def test_every_effect_panel_fits_the_dock(app, win):
                                  + layout_report(win))
     from glitchlab.ui.widgets import text_scale
     assert win.minimumSizeHint().width() <= int(800 * text_scale(win))
+
+
+def test_long_paths_and_names_do_not_widen_window(app, win):
+    """Windows paths cannot wrap at backslashes: they must be elided instead."""
+    before = win.minimumSizeHint().width()
+    win.browser.folder_label.setText("C:\\Users\\someone\\AppData\\Local\\Temp\\" + "very_long_folder_name\\" * 8)
+    win.doc.layer.name = "A" * 300
+    win.refresh_stack()
+    app.processEvents()
+    assert win.minimumSizeHint().width() == before

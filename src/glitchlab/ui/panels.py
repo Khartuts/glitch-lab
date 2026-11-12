@@ -30,6 +30,7 @@ from ..engine.effects.base import get_effect
 from ..engine.image_io import list_images, load_thumbnail
 from ..engine.model import EffectInstance
 from .qt_image import rgba_to_pixmap
+from .widgets import ElidedLabel
 
 log = logging.getLogger(__name__)
 
@@ -65,7 +66,8 @@ class StackPanel(QWidget):
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(4)
         head = QHBoxLayout()
-        self.title = section_label("Effect stack")
+        self.title = ElidedLabel("EFFECT STACK")
+        self.title.setObjectName("sectionTitle")
         head.addWidget(self.title)
         head.addStretch(1)
         self.add_btn = QToolButton()
@@ -266,9 +268,10 @@ class ImageBrowser(QWidget):
         b.clicked.connect(self._choose)
         head.addWidget(b)
         lay.addLayout(head)
-        self.folder_label = QLabel("")
+        # paths can't wrap (backslashes have no line-break opportunities), so long
+        # folder paths are shortened in the middle instead of widening the window
+        self.folder_label = ElidedLabel("", mode=Qt.ElideMiddle)
         self.folder_label.setObjectName("muted")
-        self.folder_label.setWordWrap(True)
         lay.addWidget(self.folder_label)
         self.list = QListWidget()
         self.list.setViewMode(QListWidget.IconMode)
