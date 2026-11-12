@@ -113,6 +113,18 @@ class FlowLayout(QLayout):
         return y + line_h - rect.y() + m.bottom()
 
 
+#: average character width (px) of the 9.5 pt UI font the panel sizes were designed with
+REFERENCE_AVG_CHAR = 8.0
+
+
+def text_scale(widget: QWidget) -> float:
+    """How much wider text renders here than on the reference setup (>= 1).
+
+    Fixed pixel minimums are multiplied by this, so panels stay wide enough
+    for their controls on systems with larger fonts or text scaling."""
+    return max(1.0, widget.fontMetrics().averageCharWidth() / REFERENCE_AVG_CHAR)
+
+
 def shrinkable_combo(combo: QComboBox, min_chars: int = 8) -> QComboBox:
     """Let a combo box get narrower than its longest entry (the popup still
     shows full texts), so long option names never widen a panel."""

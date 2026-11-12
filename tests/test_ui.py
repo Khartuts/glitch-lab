@@ -300,12 +300,13 @@ def test_variation_range_from_ui(app, win, photo_path):
 # ------------------------------------------------------------- v1.1 UI fixes
 def test_window_fits_small_screens_and_long_status(app, win):
     """Bug 2: the window must never be forced wider than the screen."""
-    from glitchlab.ui.widgets import layout_report
+    from glitchlab.ui.widgets import layout_report, text_scale
+    limit = int(800 * text_scale(win))  # wider allowance only where text itself renders wider
     min_w = win.minimumSizeHint().width()
-    assert min_w <= 800, layout_report(win)
+    assert min_w <= limit, layout_report(win)
     win.set_status("x" * 600 + " very long failure message " * 20, "error")
     app.processEvents()
-    assert win.minimumSizeHint().width() <= 800
+    assert win.minimumSizeHint().width() == min_w
     win.resize(1024, 640)
     app.processEvents()
     assert win.width() <= 1024 and win.height() <= 640
@@ -381,4 +382,5 @@ def test_every_effect_panel_fits_the_dock(app, win):
                            for w in body.findChildren(QWidget) if w.isVisibleTo(body)), key=lambda t: -t[0])[:10]
             raise AssertionError(f"{eid} needs {need} > {viewport}\n" + "\n".join(map(str, rows)) + "\n"
                                  + layout_report(win))
-    assert win.minimumSizeHint().width() <= 800
+    from glitchlab.ui.widgets import text_scale
+    assert win.minimumSizeHint().width() <= int(800 * text_scale(win))

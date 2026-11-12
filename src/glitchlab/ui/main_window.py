@@ -69,7 +69,7 @@ from .layers_panel import LayersPanel
 from .panels import EffectLibrary, ImageBrowser, LogView, PresetList, QtLogHandler, StackPanel
 from .qt_image import mask_overlay_qimage, rgba_to_pixmap
 from .variations_panel import FavouritesPanel, VariationsPanel
-from .widgets import ElidedLabel, fit_rect_to_screen
+from .widgets import ElidedLabel, fit_rect_to_screen, text_scale
 from .workers import TaskRunner
 
 log = logging.getLogger(__name__)
@@ -260,8 +260,9 @@ class MainWindow(QMainWindow):
         self.center_split.setStretchFactor(0, 3)
         self.center_split.setStretchFactor(1, 1)
         self.canvas.setMinimumSize(240, 180)
-        self.left_dock.setMinimumWidth(180)
-        self.right_dock.setMinimumWidth(310)
+        ts = text_scale(self)
+        self.left_dock.setMinimumWidth(int(180 * ts))
+        self.right_dock.setMinimumWidth(int(310 * ts))
         self._docks_sized = False
 
     def showEvent(self, e):  # noqa: N802
@@ -277,7 +278,9 @@ class MainWindow(QMainWindow):
             self._clamp_to_screen()
         if not self.settings.data.get("window_state_v2"):
             w = self.width()
-            self.resizeDocks([self.left_dock, self.right_dock], [max(190, int(w * 0.17)), max(300, int(w * 0.25))],
+            self.resizeDocks([self.left_dock, self.right_dock],
+                             [max(self.left_dock.minimumWidth(), int(w * 0.17)),
+                              max(self.right_dock.minimumWidth() + 20, int(w * 0.25))],
                              Qt.Horizontal)
         split = self.settings.data.get("center_split")
         if split:
