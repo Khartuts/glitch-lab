@@ -11,7 +11,9 @@ Legend
 
 Build hosts: Linux x86-64 (Python 3.13, FFmpeg 6.1.1) and the GitHub Actions
 Windows runner (Windows Server 2025, Python 3.13.17, bundled FFmpeg 8.1.3):
-332 tests passed there for 1.0, 3 Linux-only tests skipped
+332 tests passed there for 1.0; for 1.1, 502 passed with 3 Linux-only tests skipped
+([run 43315964432](https://github.com/Khartuts/glitch-lab/actions/runs/43315964432)), and the packaged
+self-test passed for all 30 effects (Sonify with the bundled FFmpeg n8.1.3)
 ([run 42212319268](https://github.com/Khartuts/glitch-lab/actions/runs/42212319268)).
 The GUI was exercised headlessly (offscreen) on Windows; an interactive session
 on a Windows 10/11 desktop has not been tested.
@@ -172,7 +174,8 @@ on a Windows 10/11 desktop has not been tested.
 | Window never forced wider than the screen (elided status text, wrapping toolbars, screen-fitted first size, clamped restore) | ✅ | minimum width 756 px (was 1681 px, 2120 px with a long status message) |
 | Any number of variations (1–64) | ✅ | |
 | Existing file on export → Overwrite / Save as new numbered (`name_01`, `name_02` …) / Cancel, also for batch export | ✅ | |
-| Interactive check on a real Windows desktop | ⚠️ | 1.0 was confirmed working by the user; 1.1 fixes were verified offscreen |
+| Long folder paths / layer names elided instead of widening the window (Windows paths cannot wrap) | ✅ | found by the layout report on the Windows runner |
+| Interactive check on a real Windows desktop | ⚠️ | 1.0 was confirmed working by the user; 1.1 fixes were verified offscreen on Linux and Windows |
 
 ## Known limitations
 

@@ -32,4 +32,8 @@ Dev venv: `.venv` (Python 3.13, `requirements-dev.txt`, package installed with `
 * New effects (30 total): data_injection, audio_file_bend, audio_reverb, halftone, cmyk_drift, benday,
   voronoi_sort, contour_tear, chromatic, vhs_crt; pixel_sort "between edges"; 7 new presets.
 * NumPy G.711 A-law codec bit-exact with FFmpeg.
-* Tests: 504 passed locally (Linux). Linux package pre-flight: self-test PASSED, contact sheet 48/48.
+* Tests: 505 passed locally (Linux); Windows run 43315964432: 502 passed / 3 Linux-only skipped,
+  packaged self-test PASSED (30 effects, Sonify with bundled FFmpeg n8.1.3), contact sheet 48/48,
+  installer built; release v1.1.0 published with stable names.
+* Windows-only layout bug found by the runner's layout report: backslash folder paths cannot wrap, so the
+  browser label widened the window -> now elided in the middle. Panel minimums scale with text width.
