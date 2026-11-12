@@ -8,7 +8,7 @@ import pytest
 from PIL import Image
 
 pytest.importorskip("PySide6.QtWidgets")
-from PySide6.QtWidgets import QApplication  # noqa: E402
+from PySide6.QtWidgets import QApplication, QWidget  # noqa: E402
 
 from glitchlab.engine import fixtures  # noqa: E402
 from glitchlab.engine.image_io import ExportOptions, load_image  # noqa: E402
@@ -300,8 +300,9 @@ def test_variation_range_from_ui(app, win, photo_path):
 # ------------------------------------------------------------- v1.1 UI fixes
 def test_window_fits_small_screens_and_long_status(app, win):
     """Bug 2: the window must never be forced wider than the screen."""
+    from glitchlab.ui.widgets import layout_report
     min_w = win.minimumSizeHint().width()
-    assert min_w <= 800, min_w
+    assert min_w <= 800, layout_report(win)
     win.set_status("x" * 600 + " very long failure message " * 20, "error")
     app.processEvents()
     assert win.minimumSizeHint().width() <= 800
@@ -373,5 +374,11 @@ def test_every_effect_panel_fits_the_dock(app, win):
         win.effect_panel.set_instance(EffectInstance.create(eid))
         app.processEvents()
         need = win.effect_panel.scroll.widget().minimumSizeHint().width()
-        assert need <= viewport, (eid, need, viewport)
+        if need > viewport:
+            from glitchlab.ui.widgets import layout_report
+            body = win.effect_panel.scroll.widget()
+            rows = sorted(((w.minimumSizeHint().width(), type(w).__name__, getattr(w, "text", lambda: "")()[:40])
+                           for w in body.findChildren(QWidget) if w.isVisibleTo(body)), key=lambda t: -t[0])[:10]
+            raise AssertionError(f"{eid} needs {need} > {viewport}\n" + "\n".join(map(str, rows)) + "\n"
+                                 + layout_report(win))
     assert win.minimumSizeHint().width() <= 800

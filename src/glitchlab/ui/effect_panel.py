@@ -54,7 +54,8 @@ class EffectPanel(QWidget):
         outer.setContentsMargins(0, 0, 0, 0)
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
-        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        # never clip: if a panel is wider than the dock, scroll sideways
+        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.scroll.setFrameShape(QFrame.NoFrame)
         outer.addWidget(self.scroll)
         self._empty()
@@ -66,8 +67,9 @@ class EffectPanel(QWidget):
     def _empty(self) -> None:
         w = QWidget()
         lay = QVBoxLayout(w)
-        lab = QLabel("Select an effect in the stack, or double-click one in the\nEffects library to add it.")
+        lab = QLabel("Select an effect in the stack, or double-click one in the Effects library to add it.")
         lab.setObjectName("muted")
+        lab.setWordWrap(True)
         lab.setAlignment(Qt.AlignCenter)
         lay.addStretch(1)
         lay.addWidget(lab)

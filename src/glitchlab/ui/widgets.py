@@ -134,3 +134,37 @@ def fit_rect_to_screen(widget: QWidget, fraction: float = 0.9) -> QRect | None:
     h = int(avail.height() * fraction)
     return QRect(avail.x() + (avail.width() - w) // 2, avail.y() + (avail.height() - h) // 2, w, h)
 
+
+
+def layout_report(win: QWidget, top: int = 12) -> str:
+    """Human-readable breakdown of what makes a window wide (diagnostics)."""
+    from PySide6.QtWidgets import QAbstractButton, QDockWidget, QLineEdit
+
+    app_font = win.font()
+    fm = win.fontMetrics()
+    scr = win.screen()
+    lines = [
+        f"window min={win.minimumSizeHint().width()} size={win.width()}x{win.height()}",
+        f"font={app_font.family()!r} pt={app_font.pointSizeF()} px={app_font.pixelSize()} "
+        f"fm.height={fm.height()} avgChar={fm.averageCharWidth()} M={fm.horizontalAdvance('M')}",
+        f"logicalDpiX={win.logicalDpiX()} dpr={win.devicePixelRatioF()} "
+        f"screen={scr.availableGeometry().width() if scr else '?'}",
+        f"central min={win.centralWidget().minimumSizeHint().width() if win.centralWidget() else '-'}",
+    ]
+    for d in win.findChildren(QDockWidget):
+        lines.append(f"dock {d.objectName()}: minW={d.minimumWidth()} hint={d.minimumSizeHint().width()} w={d.width()}")
+    leaves = []
+    for wdg in win.findChildren(QWidget):
+        if not wdg.isVisibleTo(win):
+            continue
+        mw = max(wdg.minimumSizeHint().width(), wdg.minimumWidth())
+        text = ""
+        if isinstance(wdg, (QLabel, QAbstractButton)):
+            text = wdg.text()[:50]
+        elif isinstance(wdg, QLineEdit):
+            text = wdg.text()[:50]
+        leaves.append((mw, type(wdg).__name__, wdg.objectName(), text))
+    leaves.sort(key=lambda t: -t[0])
+    lines.append("widest widgets:")
+    lines += [f"  {mw:5d} {cls} {name!r} {text!r}" for mw, cls, name, text in leaves[:top]]
+    return "\n".join(lines)
