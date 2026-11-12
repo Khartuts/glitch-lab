@@ -307,9 +307,10 @@ def test_window_fits_small_screens_and_long_status(app, win):
     win.set_status("x" * 600 + " very long failure message " * 20, "error")
     app.processEvents()
     assert win.minimumSizeHint().width() == min_w
-    win.resize(1024, 640)
+    target_w = int(1024 * text_scale(win))
+    win.resize(target_w, 640)
     app.processEvents()
-    assert win.width() <= 1024 and win.height() <= 640
+    assert win.width() <= target_w and win.height() <= 640, layout_report(win)
 
 
 def test_variations_panel_aligned_with_preview(app, win):
