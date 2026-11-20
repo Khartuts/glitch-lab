@@ -15,6 +15,9 @@ Windows runner (Windows Server 2025, Python 3.13.17, bundled FFmpeg 8.1.3):
 ([run 43315964432](https://github.com/Khartuts/glitch-lab/actions/runs/43315964432)), and the packaged
 self-test passed for all 30 effects (Sonify with the bundled FFmpeg n8.1.3)
 ([run 42212319268](https://github.com/Khartuts/glitch-lab/actions/runs/42212319268)).
+For 1.2: 612 tests pass on Linux; on Windows 609 passed with 3 Linux-only tests skipped, the packaged
+self-test passed for all 37 effects and the presets, and the contact sheet rendered 69/69
+([run 44801659803](https://github.com/Khartuts/glitch-lab/actions/runs/44801659803)).
 The GUI was exercised headlessly (offscreen) on Windows; an interactive session
 on a Windows 10/11 desktop has not been tested.
 

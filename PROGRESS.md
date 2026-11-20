@@ -33,6 +33,9 @@ Dev venv: `.venv` (Python 3.13, `requirements-dev.txt`, package installed with `
   Dark Deco, Emerald Deco Fan, Luminous Poster, Dawn Gradient Poster, Y2K Clear Plastic, Tangerine Jelly,
   Moody Corporate Futurism, Hackers, Mainframe ASCII, Hex Dump Portrait.
 * tests/test_v12_effects.py (symmetry, glyph atlas, hex dump, palettes, determinism, presets).
+* Tests: 612 passed locally (Linux); Windows run 44801659803: 609 passed / 3 Linux-only skipped, packaged
+  self-test PASSED (37 effects + presets, bundled FFmpeg n8.1.3), contact sheet 69/69; release v1.2.0
+  published (installer 114 MB, portable zip 174 MB) and the stable `latest/download` links point to it.
 
 ## Version 1.1.0
 
