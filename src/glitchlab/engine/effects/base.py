@@ -38,6 +38,7 @@ CATEGORIES = (
     "Data Bending",
     "Audio Bending",
     "Print & Halftone",
+    "Abstract & Style",
     "Analog & Lens",
     "Colour & Bits",
     "Frequency & Feedback",

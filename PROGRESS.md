@@ -24,7 +24,17 @@ Dev venv: `.venv` (Python 3.13, `requirements-dev.txt`, package installed with `
   https://github.com/Khartuts/glitch-lab/releases/latest/download/GlitchLab-win64.zip
 * Build results/log: `build-status` branch.
 
-## Version 1.1.0 (this session)
+## Version 1.2.0
+
+* New category "Abstract & Style" (37 effects total): kaleidoscope (geometry.py), psychedelic_pop, dark_deco,
+  luminous_gradient, corporate_futurism (stylize.py), clear_plastic (material.py), hacker_terminal
+  (terminal.py; Pillow default-font glyph atlas, ASCII / code rain / hex dump).
+* 14 presets (seeds 6001-7301): Kaleidoscope Bloom, Acid Kaleidoscope, Psychedelic Pop Ad, Candy Pop Ad,
+  Dark Deco, Emerald Deco Fan, Luminous Poster, Dawn Gradient Poster, Y2K Clear Plastic, Tangerine Jelly,
+  Moody Corporate Futurism, Hackers, Mainframe ASCII, Hex Dump Portrait.
+* tests/test_v12_effects.py (symmetry, glyph atlas, hex dump, palettes, determinism, presets).
+
+## Version 1.1.0
 
 * Bugs fixed: variations panel aligned under the preview (vertical splitter); window never wider than the
   screen (min width 766 px; elided status; wrapping toolbars; screen-fitted geometry); any variation

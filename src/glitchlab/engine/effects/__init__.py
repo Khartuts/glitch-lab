@@ -11,6 +11,10 @@ from . import simulation  # noqa: F401
 from . import print as print_effects  # noqa: F401
 from . import analog  # noqa: F401
 from . import audio  # noqa: F401
+from . import geometry  # noqa: F401
+from . import stylize  # noqa: F401
+from . import material  # noqa: F401
+from . import terminal  # noqa: F401
 from .base import CATEGORIES, REGISTRY, Effect, apply_effect, get_effect  # noqa: F401
 
 

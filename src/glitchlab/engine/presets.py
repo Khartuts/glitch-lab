@@ -196,6 +196,144 @@ BUILTIN_PRESETS: list[dict] = [
                 alternate=True, growth=0.6, lines=0.45, line_px=1, line_color="#101010", edge="clamp"),
         ],
     },
+    # Version 1.2 presets: experimental / abstract aesthetics
+    {
+        "name": "Kaleidoscope Bloom",
+        "description": "Ten mirrored wedges spun from the photo, with soft lens fringing.",
+        "stack": [
+            _fx("kaleidoscope", 6001, mode="wedge", segments=10, mirrored=True, cx=0.5, cy=0.5, rotation=0.0,
+                zoom=1.3, source_angle=24.0, source_x=0.0, source_y=0.0, edge="mirror"),
+            _fx("chromatic", 6002, strength=7.0, falloff=2.0, cx=0.5, cy=0.5, green=0.0, blur=1.0),
+        ],
+    },
+    {
+        "name": "Acid Kaleidoscope",
+        "description": "Hexagonal mirror tiles flooded with cycling acid colour bands.",
+        "stack": [
+            _fx("kaleidoscope", 6101, mode="hex", tile=220, cx=0.5, cy=0.5, rotation=0.0, zoom=1.1,
+                source_angle=0.0, source_x=0.05, source_y=-0.05, edge="mirror"),
+            _fx("psychedelic_pop", 6102, palette="acid", bands=10, cycles=3.0, offset=0.1, smooth=4,
+                saturation=1.2, detail=0.3, outline=0.6, outline_px=2, outline_color="#120424", swirl=0.0,
+                swirl_radius=0.6, cx=0.5, cy=0.5, mix=0.85),
+        ],
+    },
+    {
+        "name": "Psychedelic Pop Ad",
+        "description": "A 1970s poster: swirling seventies colour bands, echo outlines and a printed dot texture.",
+        "stack": [
+            _fx("psychedelic_pop", 6201, palette="seventies", bands=9, cycles=1.5, offset=0.0, smooth=8,
+                saturation=1.2, detail=0.2, outline=0.85, outline_px=3, outline_color="#2a0f1f", swirl=220.0,
+                swirl_radius=0.7, cx=0.5, cy=0.45),
+            _fx("halftone", 6202, mode="cmyk", cell=5, angle=45.0, shape="round", dot_gain=1.0, softness=1.0,
+                gcr=0.6, ink="#111111", paper="#fbf3e2", mix=0.35),
+        ],
+    },
+    {
+        "name": "Candy Pop Ad",
+        "description": "Bubble-gum candy bands with thick echo outlines.",
+        "stack": [
+            _fx("psychedelic_pop", 6301, palette="candy", bands=7, cycles=1.0, offset=0.15, smooth=10,
+                saturation=1.1, detail=0.35, outline=0.9, outline_px=4, outline_color="#3b0a45", swirl=0.0,
+                swirl_radius=0.6, cx=0.5, cy=0.5),
+        ],
+    },
+    {
+        "name": "Dark Deco",
+        "description": "Symmetrical noir-and-gold Art Deco with a sunburst and a double frame.",
+        "stack": [
+            _fx("kaleidoscope", 6401, mode="mirror", axis="vertical", flip_side=False, cx=0.5, cy=0.5,
+                rotation=0.0, zoom=1.0, source_angle=0.0, source_x=0.0, source_y=0.0, edge="mirror"),
+            _fx("dark_deco", 6402, palette="noir_gold", contrast=1.4, gold_level=0.66, pattern="sunburst",
+                density=22, origin_y=1.0, pattern_opacity=0.55, line_px=2, panels=True, frame="double",
+                frame_inset=0.04, vignette=0.55),
+        ],
+    },
+    {
+        "name": "Emerald Deco Fan",
+        "description": "Emerald and gold fan motif with nested arcs.",
+        "stack": [
+            _fx("dark_deco", 6501, palette="emerald", contrast=1.3, gold_level=0.7, pattern="fan", density=22,
+                origin_y=1.0, pattern_opacity=0.6, line_px=2, panels=True, frame="double", frame_inset=0.05,
+                vignette=0.5),
+        ],
+    },
+    {
+        "name": "Luminous Poster",
+        "description": "Soft violet light fields around a radiant source (inspired by Koichi Sato's gradient posters).",
+        "stack": [
+            _fx("luminous_gradient", 6601, palette="deep_blue", abstraction=0.6, glow_x=0.5, glow_y=0.4,
+                glow_radius=0.32, glow=1.0, halo=0.6, steps=0, detail=0.1, grain=0.025, vignette=0.6),
+        ],
+    },
+    {
+        "name": "Dawn Gradient Poster",
+        "description": "Gently stepped rose-to-cream gradient bands with a low glowing sun.",
+        "stack": [
+            _fx("luminous_gradient", 6701, palette="dawn", abstraction=0.5, glow_x=0.5, glow_y=0.7,
+                glow_radius=0.4, glow=0.9, halo=0.45, steps=12, detail=0.1, grain=0.02, vignette=0.45),
+        ],
+    },
+    {
+        "name": "Y2K Clear Plastic",
+        "description": "Translucent Bondi-blue jelly plastic with glossy highlights and bubbles.",
+        "stack": [
+            _fx("clear_plastic", 6801, tint="bondi", custom_tint="#9ad0ff", translucency=0.6, smooth=16,
+                thickness=1.2, refraction=20, frost=2, gloss=1.1, shininess=56.0, light_angle=135.0, rim=0.6,
+                caustics=0.4, bubbles=18),
+            _fx("chromatic", 6802, strength=4.0, falloff=2.0, cx=0.5, cy=0.5, green=0.0, blur=0.5),
+        ],
+    },
+    {
+        "name": "Tangerine Jelly",
+        "description": "Thick, frosted tangerine plastic.",
+        "stack": [
+            _fx("clear_plastic", 6901, tint="tangerine", custom_tint="#9ad0ff", translucency=0.45, smooth=26,
+                thickness=1.8, refraction=28, frost=5, gloss=1.2, shininess=40.0, light_angle=120.0, rim=0.7,
+                caustics=0.5, bubbles=8),
+        ],
+    },
+    {
+        "name": "Moody Corporate Futurism",
+        "description": "Cold navy grade, cyan accents, perspective grid floor, HUD brackets and glass panels.",
+        "stack": [
+            _fx("corporate_futurism", 7001, grade=0.85, shadow="#04070d", mid="#18293d", highlight="#d9ecff",
+                accent="#22e0ff", accent_amount=0.4, grid=True, horizon=0.62, grid_density=16, grid_opacity=0.4,
+                haze=0.45, hud=10, panels=2, panel_blur=16, line_opacity=0.65, line_px=1, scan=0.25),
+            _fx("vhs_crt", 7002, chroma_blur=2, chroma_shift=1, saturation=1.0, sharpen=0.2, tracking=0.0,
+                tracking_bands=0, noise=0.05, streaks=0, scanlines=0.15, scan_period=3, mask="none",
+                mask_strength=0.0, bloom=0.35, vignette=0.4, curvature=0.0, border=False),
+        ],
+    },
+    {
+        "name": "Hackers",
+        "description": "Green code rain over the photo on a curved, scanlined CRT.",
+        "stack": [
+            _fx("hacker_terminal", 7101, mode="matrix", cell=12, charset="code", text="", colour="green",
+                contrast=1.4, invert=False, background=0.15, density=0.8, trail=18, glow=0.6),
+            _fx("vhs_crt", 7102, chroma_blur=2, chroma_shift=1, saturation=1.1, sharpen=0.3, tracking=0.15,
+                tracking_bands=1, noise=0.06, streaks=3, scanlines=0.4, scan_period=3, mask="aperture",
+                mask_strength=0.2, bloom=0.5, vignette=0.5, curvature=0.12, border=True),
+        ],
+    },
+    {
+        "name": "Mainframe ASCII",
+        "description": "Amber ASCII-art portrait on an old terminal.",
+        "stack": [
+            _fx("hacker_terminal", 7201, mode="ascii", cell=10, charset="dense", text="", colour="amber",
+                contrast=1.5, invert=False, background=0.08, density=0.75, trail=16, glow=0.5),
+            _fx("vhs_crt", 7202, chroma_blur=0, chroma_shift=0, saturation=1.0, sharpen=0.0, tracking=0.0,
+                tracking_bands=0, noise=0.04, streaks=0, scanlines=0.35, scan_period=3, mask="none",
+                mask_strength=0.0, bloom=0.4, vignette=0.45, curvature=0.08, border=True),
+        ],
+    },
+    {
+        "name": "Hex Dump Portrait",
+        "description": "The image drawn by a green hex dump of its own bytes.",
+        "stack": [
+            _fx("hacker_terminal", 7301, mode="hexdump", cell=9, charset="hex", text="", colour="green",
+                contrast=1.6, invert=False, background=0.05, density=0.75, trail=16, glow=0.35),
+        ],
+    },
     # Milestone-1-only presets (they use only the first four effects).
     {
         "name": "Tape Snag",

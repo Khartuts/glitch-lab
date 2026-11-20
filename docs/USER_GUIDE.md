@@ -108,6 +108,44 @@ is never overwritten.
 * **VHS & CRT** — smeared tape colour, tracking errors, static, scanlines,
   phosphor mask, bloom, vignette and screen curvature.
 
+## 4c. Abstract & style effects (new in 1.2)
+
+These turn a photo into a graphic style rather than "breaking" it. They work
+on any image; try them on top of other effects or mix them with *Mix*.
+
+* **Kaleidoscope** — real mirror symmetry. *Radial wedges* folds the image
+  into any number of segments (2–48) around a centre; *Hexagon tiles* and
+  *Square mirror tiles* repeat a mirrored cell over the whole picture;
+  *Mirror halves* copies the left/right or top/bottom half (or all four
+  quadrants). *Source angle* and *Source shift* choose which part of the
+  photo feeds the mirrors, *Zoom* magnifies it. Even segment counts give a
+  perfectly regular pattern; odd counts give a slightly irregular one, just
+  like a real mirror kaleidoscope.
+* **Psychedelic Pop** — 60s/70s poster look: brightness becomes flat bands
+  coloured from a palette (rainbow, candy, seventies, acid, lava), with echo
+  outlines between bands and an optional whirlpool *Swirl*.
+* **Dark Deco** — Art Deco in black and metal: the photo is graded into a
+  dark base with gold, brass, champagne or silver highlights, overlaid with a
+  sunburst, fan, arches or chevrons, stepped panels and a single or double
+  frame.
+* **Luminous Gradient** — soft, glowing light-field posters (in the spirit of
+  Koichi Sato's gradients): the photo is abstracted into smooth gradients
+  around a radiant light source. *Steps* turns the smooth light into gentle
+  bands; *Grain* adds a fine print texture (the only random part).
+* **Y2K Clear Plastic** — glossy translucent "jelly" plastic like late-90s
+  gadgets: the image's light and shade become a smooth bulging surface that
+  refracts and tints what is behind it, with specular hotspots, a rim light,
+  caustic glints and bubbles. Pick Bondi blue, tangerine, grape, lime,
+  strawberry, ice, graphite or your own colour.
+* **Corporate Futurism** — moody, cold corporate sci-fi: a navy/steel colour
+  grade with a cyan accent, a perspective grid floor, haze, HUD brackets and
+  frosted glass panels. Every overlay can be switched off.
+* **Hacker Terminal** — the image drawn with characters on a phosphor
+  screen: *ASCII art*, *Code rain* (falling streams that light up where the
+  photo is bright) or *Hex dump* (a real hex dump of the image bytes, or of
+  your own *Text*). Green, amber, cyan, white, red or the photo's own colours.
+  Put **VHS & CRT** after it for an old monitor.
+
 ## 5. Selective processing: layers and masks
 
 The default document has two layers: **Original** (bottom) and **Glitch**
@@ -140,8 +178,11 @@ Double-click a preset to replace the selected layer's stack (right-click to
 append). Built-in: Broken Broadcast, Acid Chromatic, Industrial Decay,
 Corrupted Memory, Spectral Ghost, Scanner Failure, Digital Rust,
 Photocopier Meltdown, Pop Art Misprint, Comic Moiré, VHS Night, Stained Glass
-Meltdown, Cathedral Ghosts, Lyric Injection, Tectonic Portrait, plus a few
-simple ones. *Save stack as preset…* stores
+Meltdown, Cathedral Ghosts, Lyric Injection, Tectonic Portrait, and (new in 1.2)
+Kaleidoscope Bloom, Acid Kaleidoscope, Psychedelic Pop Ad, Candy Pop Ad, Dark
+Deco, Emerald Deco Fan, Luminous Poster, Dawn Gradient Poster, Y2K Clear
+Plastic, Tangerine Jelly, Moody Corporate Futurism, Hackers, Mainframe ASCII
+and Hex Dump Portrait, plus a few simple ones. *Save stack as preset…* stores
 your own (marked ★).
 
 ## 8. Projects

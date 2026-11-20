@@ -11,6 +11,20 @@ No Python or other software is needed. FFmpeg (used by Sonify and for decoding M
 **First start:** the program is not code-signed, so Windows SmartScreen may show
 "Windows protected your PC". Click **More info → Run anyway**.
 
+## What's new in 1.2
+
+* New category **Abstract & Style** with seven effects:
+  **Kaleidoscope** (radial wedges with any number of segments, hexagon or square mirror tiles, mirror halves),
+  **Psychedelic Pop** (poster colour bands, echo outlines, swirl),
+  **Dark Deco** (black-and-gold Art Deco: sunburst, fan, arches, chevrons, stepped panels, frames),
+  **Luminous Gradient** (glowing gradient light fields, in the spirit of Koichi Sato's posters),
+  **Y2K Clear Plastic** (glossy translucent jelly plastic with refraction, highlights and bubbles),
+  **Corporate Futurism** (cold grade, grid floor, HUD brackets, glass panels) and
+  **Hacker Terminal** (ASCII art, code rain or a hex dump of the image or your own text).
+* Fourteen new presets: Kaleidoscope Bloom, Acid Kaleidoscope, Psychedelic Pop Ad, Candy Pop Ad, Dark Deco,
+  Emerald Deco Fan, Luminous Poster, Dawn Gradient Poster, Y2K Clear Plastic, Tangerine Jelly,
+  Moody Corporate Futurism, Hackers, Mainframe ASCII, Hex Dump Portrait.
+
 ## What's new in 1.1
 
 * Fixed: the Variations panel now sits directly under the preview, aligned with it.

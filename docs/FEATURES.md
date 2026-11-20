@@ -1,4 +1,4 @@
-# Feature checklist — Glitch Lab 1.1.0
+# Feature checklist — Glitch Lab 1.2.0
 
 Legend
 
@@ -107,6 +107,18 @@ on a Windows 10/11 desktop has not been tested.
 | VHS & CRT (tape colour bleed, tracking, noise, scanlines, phosphor masks, bloom, vignette, curvature) | ✅ | |
 | Pixel sorting "between edges" | ✅ | |
 
+### Added in 1.2 (category "Abstract & Style")
+
+| Effect | Status | Notes |
+|---|---|---|
+| Kaleidoscope (radial wedges 2–48, hexagon / square mirror tiles, mirror halves; source angle/shift, zoom, edge mode) | ✅ 👁 | mirror and rotational symmetry asserted; odd mirrored segment counts are not exactly regular (as with real mirrors) |
+| Psychedelic Pop (5 palettes, colour bands, cycles, echo outlines, swirl) | ✅ 👁 | at most *bands* colours without detail/outline |
+| Dark Deco (5 palettes; sunburst, fan, arches, chevron; stepped panels; single/double frame) | ✅ 👁 | |
+| Luminous Gradient (6 palettes, light source, halo, steps, grain) | ✅ 👁 | only the grain uses the seed |
+| Y2K Clear Plastic (7 tints + custom; refraction, frost, gloss, rim, caustics, bubbles) | ✅ 👁 | |
+| Corporate Futurism (grade, accent, grid floor, haze, HUD brackets, glass panels, scan lines) | ✅ 👁 | |
+| Hacker Terminal (ASCII / code rain / hex dump; 5 character sets; phosphor colours or original) | ✅ 👁 | glyphs from Pillow's built-in font, identical on every platform |
+
 ## Selective processing & compositing
 
 | Feature | Status |
@@ -127,7 +139,7 @@ on a Windows 10/11 desktop has not been tested.
 | Limit to selected effects (*Include in variations*), parameter locks, seed locks, intensity, per-parameter ranges (right-click a parameter label) | ✅ |
 | Click restores exact recipe | ✅ |
 | Favourites (saved in projects), export selected variations / favourites | ✅ |
-| 8 named presets with real stacks + 3 simple presets | ✅ |
+| Named presets with real stacks (8 in 1.0, +7 in 1.1, +14 in 1.2) + 3 simple presets | ✅ |
 
 ## Projects & export
 
