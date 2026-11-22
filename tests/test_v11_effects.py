@@ -49,7 +49,7 @@ def run(img, eid, seed=1, **params):
 
 def test_new_effects_registered():
     assert set(NEW_EFFECTS) <= set(REGISTRY)
-    assert len(REGISTRY) == 45
+    assert len(REGISTRY) == 46
 
 
 # ----------------------------------------------------------------- halftone

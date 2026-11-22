@@ -193,6 +193,10 @@ class MaskSpec:
         return json.dumps(self.to_dict(), sort_keys=True)
 
 
+LAYER_KINDS = ("image", "text")
+LAYER_SOURCES = ("original", "below")
+
+
 @dataclass
 class Layer:
     name: str = "Layer"
@@ -202,6 +206,12 @@ class Layer:
     blend: str = "normal"
     mask: MaskSpec = field(default_factory=MaskSpec)
     uid: str = field(default_factory=new_uid)
+    #: "image" (effects on the photo) or "text" (editable typography; its stack processes only the text)
+    kind: str = "image"
+    #: text boxes of a text layer (see glitchlab.engine.typography.model)
+    boxes: list[dict] = field(default_factory=list)
+    #: image layers: process the "original" photo or the composite of the layers "below" (photo + text)
+    source: str = "original"
 
     def find(self, uid: str) -> EffectInstance | None:
         for e in self.stack:
@@ -216,11 +226,17 @@ class Layer:
         return -1
 
     def to_dict(self) -> dict:
-        return {
+        d = {
             "uid": self.uid, "name": self.name, "visible": self.visible, "opacity": self.opacity,
             "blend": self.blend, "mask": self.mask.to_dict(),
             "stack": [e.to_dict() for e in self.stack],
         }
+        if self.kind != "image":
+            d["kind"] = self.kind
+            d["boxes"] = copy.deepcopy(self.boxes)
+        if self.source != "original":
+            d["source"] = self.source
+        return d
 
     @classmethod
     def from_dict(cls, d: dict) -> "Layer":
@@ -233,7 +249,18 @@ class Layer:
             blend=blend if blend in BLEND_MODES else "normal",
             mask=MaskSpec.from_dict(d.get("mask")),
             uid=str(d.get("uid") or new_uid()),
+            kind=d.get("kind") if d.get("kind") in LAYER_KINDS else "image",
+            boxes=_coerce_boxes(d.get("boxes")),
+            source=d.get("source") if d.get("source") in LAYER_SOURCES else "original",
         )
+
+
+def _coerce_boxes(boxes) -> list[dict]:
+    if not boxes:
+        return []
+    from .typography.model import coerce_box  # noqa: PLC0415
+
+    return [coerce_box(b) for b in boxes if isinstance(b, dict)]
 
 
 @dataclass

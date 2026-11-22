@@ -6,6 +6,7 @@ original with ``scale < 1``) and full-resolution exports (``scale == 1``).
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 import threading
 import time
@@ -16,12 +17,12 @@ from typing import Callable
 import numpy as np
 
 from .cancel import CancelToken
-from .compositing import composite_layers
+from .compositing import composite_layers, composite_over
 from .effects.base import apply_effect, get_effect
 from .errors import Cancelled, DependencyError, EffectError, GlitchLabError
 from .masks import rasterize_mask
 from .model import Document, EffectInstance
-from .ops import resize_rgba
+from .ops import resize_rgba, to_float, to_uint8
 from .services import EngineServices, default_services
 
 log = logging.getLogger(__name__)
@@ -266,6 +267,7 @@ def render_document(
     on_error: str = "raise",
     progress: ProgressFn | None = None,
     full_source: np.ndarray | None = None,
+    text_only: bool = False,
 ) -> RenderResult:
     """Render a whole document.
 
@@ -283,33 +285,93 @@ def render_document(
         full_size = (int(round(source.shape[1] / scale)), int(round(source.shape[0] / scale)))
     failures: list[EffectFailure] = []
     warnings: list[str] = []
-    images, modes, opacities, masks = [], [], [], []
-    visible = [layer for layer in doc.layers if layer.visible and layer.opacity > 0]
+    visible = [layer for layer in doc.layers if layer.visible and layer.opacity > 0
+               and (not text_only or layer.kind == "text")]
     hits = 0
     h, w = source.shape[:2]
     nl = max(1, len(visible))
+    acc = None
+    single = None
     for li, layer in enumerate(visible):
+        base, prefix, fs = source, cache_prefix, full_source
+        if layer.kind == "text":
+            base, tsig = _text_raster(layer, source, doc, scale, full_size, full_source, services, cancel, cache,
+                                      cache_prefix, on_error, warnings)
+            prefix, fs = f"{cache_prefix}:text:{tsig}", None
+        elif layer.source == "below" and acc is not None:
+            base = to_uint8(acc)
+            below = hashlib.sha1(json.dumps([lay.to_dict() for lay in visible[:li]], sort_keys=True,
+                                            default=str).encode()).hexdigest()
+            prefix, fs = f"{cache_prefix}:below:{below}", None
         img, hit = render_stack(
-            source, layer.stack, global_seed=doc.global_seed, scale=scale, full_size=full_size,
-            services=services, cancel=cancel, cache=cache, cache_prefix=cache_prefix, on_error=on_error,
+            base, layer.stack, global_seed=doc.global_seed, scale=scale, full_size=full_size,
+            services=services, cancel=cancel, cache=cache, cache_prefix=prefix, on_error=on_error,
             failures=failures, warnings=warnings, progress=progress,
-            progress_range=(li / nl * 0.95, (li + 1) / nl * 0.95), full_source=full_source)
+            progress_range=(li / nl * 0.95, (li + 1) / nl * 0.95), full_source=fs)
         hits += hit
-        images.append(img)
-        modes.append(layer.blend)
-        opacities.append(layer.opacity)
-        masks.append(rasterize_mask(layer.mask, w, h, source))
+        mask = rasterize_mask(layer.mask, w, h, source)
+        if li == 0 and len(visible) == 1 and layer.opacity >= 1.0 and mask is None and layer.kind == "image":
+            single = img
+            break
+        acc = composite_over(acc, to_float(img), mode=layer.blend, opacity=layer.opacity, mask=mask)
     cancel.check()
-    if not images:
+    if single is not None:
+        out = single.copy()
+    elif acc is None:
         out = np.zeros_like(source)
     else:
-        out = composite_layers(images, modes, opacities, masks)
-    if doc.effective_alpha_mode() == "preserve":
+        out = to_uint8(acc)
+    if doc.effective_alpha_mode() == "preserve" and not text_only:
         out[..., 3] = source[..., 3]
     if progress:
         progress(1.0, "Done")
     return RenderResult(image=out, scale=scale, warnings=warnings, failures=failures,
                         elapsed=time.perf_counter() - t0, cache_hits=hits)
+
+
+def _text_raster(layer, source, doc, scale, full_size, full_source, services, cancel, cache, cache_prefix, on_error,
+                 warnings):
+    """Typography of a text layer at render resolution (cached)."""
+    from .typography.render import render_text_layer, text_layer_signature  # noqa: PLC0415
+
+    h, w = source.shape[:2]
+    sig = text_layer_signature(layer.boxes, w, h)
+    key = f"{cache_prefix}|textlayer|{sig}"
+    hit = cache.get(key) if cache is not None else None
+    reports: list = []
+    if hit is not None:
+        return hit, sig
+
+    def subject_fn(points):
+        from ..ai import analysis  # noqa: PLC0415 - optional, cached SAM 2 inference
+        from .effects.base import EffectContext  # noqa: PLC0415
+
+        fsrc = full_source if full_source is not None else (source if scale == 1.0 else None)
+        base_id = source_fingerprint(fsrc) if fsrc is not None else f"scaled:{scale:.6f}:{source_fingerprint(source)}"
+        key0 = hashlib.sha1(f"{base_id}|{full_size}|{doc.global_seed}".encode()).hexdigest()
+        ss = np.random.SeedSequence(0)
+        ctx = EffectContext(rng=np.random.default_rng(ss), seed_sequence=ss, scale=scale, full_size=full_size,
+                            cancel=cancel, services=services, input_key=key0,
+                            full_input=(lambda: fsrc if fsrc is not None else source), owner=f"text:{layer.uid}",
+                            interactive=on_error == "skip", effect_label="Text behind subject")
+        logits = analysis.object_logits(ctx, source, points)
+        import cv2  # noqa: PLC0415
+
+        m = np.zeros((h, w), np.float32)
+        for lg in logits:
+            m = np.maximum(m, 1.0 / (1.0 + np.exp(-cv2.resize(lg, (w, h), interpolation=cv2.INTER_LINEAR) * 2.0)))
+        return m
+
+    img = render_text_layer(layer.boxes, w, h, full_size=full_size, source=source, subject_fn=subject_fn,
+                            reports=reports, cancel=cancel)
+    for i, rep in enumerate(reports):
+        if rep.overflow and not any("larger than its box" in x or "does not fit" in x for x in rep.warnings):
+            rep.warnings.append("The text overflows its box.")
+        for msg in rep.warnings:
+            warnings.append(f"{layer.name}, text box {i + 1}: {msg}")
+    if cache is not None:
+        cache.put(key, img)
+    return img, sig
 
 
 def render_full(source: np.ndarray, doc: Document, **kw) -> RenderResult:
