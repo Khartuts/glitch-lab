@@ -66,14 +66,16 @@ def _plan(box: dict, path: str) -> FontPlan:
     locks = sp.get("locks") or {}
     for i, _w in enumerate(_words(box["text"])):
         rng = np.random.default_rng([box["seed"], i, 77])
+        # always draw the same numbers so locking one fragment never changes the others
+        r, pick, sz = rng.random(), int(rng.integers(0, len(pool))), rng.uniform(-0.22, 0.38)
         lk = locks.get(str(i), {})
         if "font" in lk and fonts.REGISTRY.get(lk["font"]):
             fp = fonts.REGISTRY.get(lk["font"]).path
-        elif rng.random() < sp["font_variation"] * min(box["intensity"], 1.0):
-            fp = pool[int(rng.integers(0, len(pool)))]
+        elif r < sp["font_variation"] * min(box["intensity"], 1.0):
+            fp = pool[pick]
         else:
             fp = path
-        k = float(lk.get("size", 1.0 + (rng.uniform(-0.22, 0.38) * sp["font_variation"] * min(box["intensity"], 1.0))))
+        k = float(lk.get("size", 1.0 + sz * sp["font_variation"] * min(box["intensity"], 1.0)))
         per[i] = (fp, k)
     return FontPlan(path, per)
 
@@ -421,6 +423,25 @@ def render_text_layer(boxes: list[dict], W: int, H: int, *, full_size: tuple[int
         if reports is not None:
             reports.append(rep)
     return _premul_to_straight_u8(acc)
+
+
+def fragment_state(box: dict, word: int) -> dict:
+    """The current random look of Cut-and-Paste fragment ``word`` (stored when the user locks it)."""
+    from .styles import PAPERS  # noqa: PLC0415
+
+    b = coerce_box(box)
+    info, _ = fonts.resolve(b["font"])
+    plan = _plan(dict(b, style="cut"), info.path)
+    fp, size = plan.for_word(word)
+    font_id = next((f.id for f in fonts.REGISTRY.all() if f.path == fp), b["font"])
+    sp = b["style_params"]["cut"]
+    k = float(b["intensity"])
+    seed = int(np.random.default_rng([b["seed"], STYLE_IDX["cut"]]).integers(0, 2**31 - 1))
+    frng = np.random.default_rng([seed, word, 0])
+    paper = int(frng.integers(0, len(PAPERS)))
+    rot = float(frng.normal(0, 1) * sp["rotation"] * min(k, 2.0))
+    base = float(frng.normal(0, 1) * sp["baseline"] * min(k, 2.0))
+    return {"font": font_id, "size": float(size), "paper": paper, "rot": rot, "baseline": base}
 
 
 def box_report(box: dict, W: int, H: int) -> BoxReport:

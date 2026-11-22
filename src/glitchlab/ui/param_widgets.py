@@ -359,6 +359,15 @@ class LongTextEditor(_Editor):
         lay.addWidget(self.edit)
         self._last = ""
         self.edit.installEventFilter(self)
+        if "live" in param.flags:  # live preview while typing (debounced)
+            from PySide6.QtCore import QTimer  # noqa: PLC0415
+
+            self.edit.setFixedHeight(int(fm.lineSpacing() * 7 + 12))
+            self._timer = QTimer(self)
+            self._timer.setSingleShot(True)
+            self._timer.setInterval(350)
+            self._timer.timeout.connect(self._apply)
+            self.edit.textChanged.connect(lambda: (not self._block) and self._timer.start())
 
     def eventFilter(self, obj, ev):  # noqa: N802
         from PySide6.QtCore import QEvent  # noqa: PLC0415

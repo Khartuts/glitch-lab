@@ -28,6 +28,8 @@ TOOL_RECT = "rect"
 TOOL_BRUSH = "brush"
 TOOL_ERASE = "erase"
 TOOL_POINTS = "points"
+TOOL_TEXT = "text"
+SAFE_MARGIN = 0.05
 
 
 def _checker_tile(size: int = 8) -> QPixmap:
@@ -48,6 +50,8 @@ class PreviewCanvas(QWidget):
     files_dropped = Signal(list)
     point_clicked = Signal(float, float, int)   # normalised x, y, label (1 = object, 0 = exclude)
     point_moved = Signal(int, float, float)     # index, normalised x, y (dragging an existing point)
+    text_box_geometry = Signal(str, dict, bool)  # uid, {x, y, w, h, rotation}, final
+    text_box_selected = Signal(str)
     escape_pressed = Signal()
 
     def __init__(self, parent=None):
@@ -80,6 +84,9 @@ class PreviewCanvas(QWidget):
         self._fitted_once = False
         self._fit_mode = True
         self._points: list = []
+        self._tboxes: list[dict] = []
+        self._tsel = ""
+        self._snap = (False, False)
 
     # ------------------------------------------------------------------ API
     def has_image(self) -> bool:
@@ -314,6 +321,7 @@ class PreviewCanvas(QWidget):
                 p.drawPath(path)
         if self._tool == TOOL_POINTS or self._points:
             self._paint_points(p)
+        self._paint_text_boxes(p)
         if self._tool in (TOOL_BRUSH, TOOL_ERASE) and self._cursor_pos is not None and self._result is not None:
             p.setPen(QPen(QColor("#ffffff"), 1))
             p.setBrush(Qt.NoBrush)
@@ -323,6 +331,126 @@ class PreviewCanvas(QWidget):
         """Object-selection points to draw ([x, y, label, object] in 0..1)."""
         self._points = list(points or [])
         self.update()
+
+    # ------------------------------------------------------------ text boxes
+    def set_text_boxes(self, boxes: list[dict] | None, selected: str = "") -> None:
+        self._tboxes = [dict(b) for b in (boxes or [])]
+        self._tsel = selected
+        self.update()
+
+    def _tb_screen(self, b: dict):
+        """(centre, half w, half h, angle rad) of a box in screen pixels."""
+        import math  # noqa: PLC0415
+
+        r = self._image_rect()
+        c = QPointF(r.left() + b["x"] * r.width(), r.top() + b["y"] * r.height())
+        return c, b["w"] * r.width() / 2, b["h"] * r.height() / 2, math.radians(b.get("rotation", 0.0))
+
+    @staticmethod
+    def _rot(v: QPointF, a: float) -> QPointF:
+        import math  # noqa: PLC0415
+
+        return QPointF(v.x() * math.cos(a) - v.y() * math.sin(a), v.x() * math.sin(a) + v.y() * math.cos(a))
+
+    def _tb_corners(self, b: dict):
+        c, hw, hh, a = self._tb_screen(b)
+        return [c + self._rot(QPointF(sx * hw, sy * hh), a) for sx, sy in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
+
+    def _tb_rot_handle(self, b: dict) -> QPointF:
+        c, hw, hh, a = self._tb_screen(b)
+        return c + self._rot(QPointF(0, -hh - 22), a)
+
+    def _tb_hit(self, pos: QPointF):
+        """('rot'|'corner'|'move', box, corner index) for the topmost hit."""
+        for b in sorted(self._tboxes, key=lambda b: b["uid"] != self._tsel):
+            if b["uid"] == self._tsel:
+                if (self._tb_rot_handle(b) - pos).manhattanLength() < 12:
+                    return "rot", b, -1
+                for i, cpt in enumerate(self._tb_corners(b)):
+                    if (cpt - pos).manhattanLength() < 12:
+                        return "corner", b, i
+            c, hw, hh, a = self._tb_screen(b)
+            local = self._rot(pos - c, -a)
+            if abs(local.x()) <= hw and abs(local.y()) <= hh:
+                return "move", b, -1
+        return None
+
+    def _paint_text_boxes(self, p: QPainter) -> None:
+        if not self._tboxes or not self._img_w:
+            return
+        r = self._image_rect()
+        if self._tool == TOOL_TEXT:  # guides: centre lines and safe margins
+            p.setPen(QPen(QColor(255, 255, 255, 50), 1, Qt.DashLine))
+            p.drawRect(QRectF(r.left() + r.width() * SAFE_MARGIN, r.top() + r.height() * SAFE_MARGIN,
+                              r.width() * (1 - 2 * SAFE_MARGIN), r.height() * (1 - 2 * SAFE_MARGIN)))
+            sx, sy = self._snap
+            p.setPen(QPen(QColor(47, 224, 255, 200 if sx else 60), 1, Qt.DotLine))
+            p.drawLine(QPointF(r.center().x(), r.top()), QPointF(r.center().x(), r.bottom()))
+            p.setPen(QPen(QColor(47, 224, 255, 200 if sy else 60), 1, Qt.DotLine))
+            p.drawLine(QPointF(r.left(), r.center().y()), QPointF(r.right(), r.center().y()))
+        for b in self._tboxes:
+            sel = b["uid"] == self._tsel
+            pts = self._tb_corners(b)
+            col = QColor(theme.ACCENT_2) if sel else QColor(255, 255, 255, 90)
+            p.setPen(QPen(col, 1.5 if sel else 1, Qt.SolidLine if sel else Qt.DashLine))
+            p.setBrush(Qt.NoBrush)
+            for i in range(4):
+                p.drawLine(pts[i], pts[(i + 1) % 4])
+            if sel and self._tool == TOOL_TEXT:
+                p.setBrush(QColor(theme.ACCENT_2))
+                for cpt in pts:
+                    p.drawRect(QRectF(cpt.x() - 4, cpt.y() - 4, 8, 8))
+                h = self._tb_rot_handle(b)
+                top = (pts[0] + pts[1]) / 2
+                p.drawLine(top, h)
+                p.drawEllipse(h, 5, 5)
+
+    def _tb_drag(self, pos: QPointF) -> None:
+        import math  # noqa: PLC0415
+
+        kind, b0, idx, start = self._drag[1], self._drag[2], self._drag[3], self._drag[4]
+        r = self._image_rect()
+        if r.width() <= 0:
+            return
+        g = dict(b0)
+        snapx = snapy = False
+        if kind == "move":
+            g["x"] = b0["x"] + (pos.x() - start.x()) / r.width()
+            g["y"] = b0["y"] + (pos.y() - start.y()) / r.height()
+            tol_x, tol_y = 6.0 / r.width(), 6.0 / r.height()
+            if abs(g["x"] - 0.5) < tol_x:
+                g["x"], snapx = 0.5, True
+            if abs(g["y"] - 0.5) < tol_y:
+                g["y"], snapy = 0.5, True
+            if abs(b0.get("rotation", 0.0)) < 0.01:  # edges snap to the safe margins
+                for edge, sgn in ((SAFE_MARGIN, -1), (1 - SAFE_MARGIN, 1)):
+                    if abs(g["x"] + sgn * g["w"] / 2 - edge) < tol_x:
+                        g["x"], snapx = edge - sgn * g["w"] / 2, True
+                    if abs(g["y"] + sgn * g["h"] / 2 - edge) < tol_y:
+                        g["y"], snapy = edge - sgn * g["h"] / 2, True
+        elif kind == "corner":
+            c, hw, hh, a = self._tb_screen(b0)
+            corners = self._tb_corners(b0)
+            opp = corners[(idx + 2) % 4]
+            new_c = (opp + pos) / 2
+            local = self._rot(pos - opp, -a)
+            g["w"] = max(0.02, abs(local.x()) / r.width())
+            g["h"] = max(0.02, abs(local.y()) / r.height())
+            g["x"] = (new_c.x() - r.left()) / r.width()
+            g["y"] = (new_c.y() - r.top()) / r.height()
+        else:
+            c, _, _, _ = self._tb_screen(b0)
+            ang = math.degrees(math.atan2(pos.y() - c.y(), pos.x() - c.x())) + 90.0
+            ang = (ang + 180.0) % 360.0 - 180.0
+            for snap in (-180.0, -90.0, 0.0, 90.0, 180.0):
+                if abs(ang - snap) < 3.0:
+                    ang = snap
+            g["rotation"] = ang
+        self._snap = (snapx, snapy)
+        for i, b in enumerate(self._tboxes):
+            if b["uid"] == g["uid"]:
+                self._tboxes[i] = g
+        self.text_box_geometry.emit(g["uid"], {k: g[k] for k in ("x", "y", "w", "h", "rotation")}, False)
 
     def _point_at(self, pos: QPointF):
         if not self._points or not self._img_w:
@@ -406,6 +534,14 @@ class PreviewCanvas(QWidget):
                 self._drag = ("rect", pos, e.button() == Qt.RightButton or bool(e.modifiers() & Qt.AltModifier))
             elif self._tool in (TOOL_BRUSH, TOOL_ERASE):
                 self._drag = ("stroke", [pos])
+            elif self._tool == TOOL_TEXT and e.button() == Qt.LeftButton:
+                hit = self._tb_hit(pos)
+                if hit is not None:
+                    kind, b, idx = hit
+                    if b["uid"] != self._tsel:
+                        self._tsel = b["uid"]
+                        self.text_box_selected.emit(b["uid"])
+                    self._drag = ("tbox", kind, dict(b), idx, QPointF(pos))
             elif self._tool == TOOL_POINTS:
                 x, y = self._to_norm(pos)
                 hit = self._point_at(pos) if e.button() == Qt.LeftButton else None
@@ -432,6 +568,8 @@ class PreviewCanvas(QWidget):
                 pts = self._drag[1]
                 if (pts[-1] - pos).manhattanLength() > 1.5:
                     pts.append(pos)
+            elif kind == "tbox":
+                self._tb_drag(pos)
             elif kind == "pointdrag":
                 x, y = self._to_norm(pos)
                 i = self._drag[1]
@@ -449,6 +587,15 @@ class PreviewCanvas(QWidget):
         if not self._drag:
             return
         kind = self._drag[0]
+        if kind == "tbox":
+            uid = self._drag[2]["uid"]
+            self._drag = None
+            self._snap = (False, False)
+            g = next((b for b in self._tboxes if b["uid"] == uid), None)
+            if g is not None:
+                self.text_box_geometry.emit(uid, {k: g[k] for k in ("x", "y", "w", "h", "rotation")}, True)
+            self.update()
+            return
         if kind == "pointdrag":
             i = self._drag[1]
             self._drag = None

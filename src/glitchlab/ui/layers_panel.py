@@ -79,6 +79,7 @@ class LayersPanel(QWidget):
         lay.addWidget(self.list)
         row = QHBoxLayout()
         for key, text, tip in (("add", "＋", "Add a processing layer above the selected one (Ctrl+Shift+N)"),
+                               ("add_text", "T＋", "Add a text (lyrics / typography) layer above the selected one"),
                                ("duplicate", "⧉", "Duplicate the selected layer"),
                                ("remove", "✕", "Remove the selected layer"),
                                ("up", "▲", "Move layer up"), ("down", "▼", "Move layer down")):
@@ -108,6 +109,12 @@ class LayersPanel(QWidget):
         self.visible = QCheckBox("Visible")
         self.visible.toggled.connect(lambda on: self._emit_layer("visible", bool(on)))
         form.addRow("", self.visible)
+        self.below = QCheckBox("Process the layers below (photo + text together)")
+        self.below.setToolTip("Off: this layer's effects process the original photo. On: they process everything "
+                              "below it, including text layers.")
+        self.below.toggled.connect(lambda on: (not self._updating) and self._emit_layer("source",
+                                                                                         "below" if on else "original"))
+        form.addRow("", self.below)
         lay.addWidget(box)
 
         dbox = QGroupBox("Document")
@@ -220,6 +227,10 @@ class LayersPanel(QWidget):
                 layer = doc.layers[i]
                 fx = len(layer.stack)
                 extra = f"{layer.blend}, {layer.opacity * 100:.0f}%, {fx} effect{'s' if fx != 1 else ''}"
+                if layer.kind == "text":
+                    extra = f"text, {len(layer.boxes)} box{'es' if len(layer.boxes) != 1 else ''}, " + extra
+                elif layer.source == "below":
+                    extra += ", processes layers below"
                 if not layer.mask.is_identity():
                     extra += ", masked"
                 it = QListWidgetItem(f"{layer.name}   ({extra})")
@@ -233,6 +244,8 @@ class LayersPanel(QWidget):
             self.blend.setCurrentIndex(max(0, self.blend.findData(layer.blend)))
             self.opacity.set_value(layer.opacity)
             self.visible.setChecked(layer.visible)
+            self.below.setChecked(layer.source == "below")
+            self.below.setVisible(layer.kind != "text")
             self.alpha.setCurrentIndex(max(0, self.alpha.findData(doc.alpha_mode)))
             m = layer.mask
             self.mask_on.setChecked(m.enabled)

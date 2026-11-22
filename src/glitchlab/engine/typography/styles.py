@@ -361,10 +361,13 @@ def cut(si: StyleInput) -> np.ndarray:
         key = (g.word, g.line) if p.get("unit", "word") == "word" else (g.index, g.line)
         groups.setdefault(key, []).append(g)
     locks = p.get("locks") or {}
+    pieces: dict[int, int] = {}
     for key in sorted(groups):
         gl = groups[key]
         lk = locks.get(str(key[0]), {})
-        frng = np.random.default_rng([si.seed, key[0], key[1]])
+        piece = pieces.get(key[0], 0)       # a word split over lines gives several pieces
+        pieces[key[0]] = piece + 1
+        frng = np.random.default_rng([si.seed, key[0], piece])
         paper_i = int(lk.get("paper", frng.integers(0, len(PAPERS))))
         rot = float(lk.get("rot", frng.normal(0, 1) * p["rotation"] * min(k, 2.0)))
         lift = float(lk.get("baseline", frng.normal(0, 1) * p["baseline"] * min(k, 2.0))) * em

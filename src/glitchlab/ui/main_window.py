@@ -62,7 +62,7 @@ from ..engine.presets import (
 from ..engine.services import EngineServices
 from ..engine.settings import Settings
 from . import theme
-from .canvas import TOOL_BRUSH, TOOL_ERASE, TOOL_PAN, TOOL_POINTS, TOOL_RECT, PreviewCanvas
+from .canvas import TOOL_BRUSH, TOOL_ERASE, TOOL_PAN, TOOL_POINTS, TOOL_RECT, TOOL_TEXT, PreviewCanvas
 from .effect_panel import EffectPanel
 from .export_dialog import ExportDialog, ask_conflict
 from .layers_panel import LayersPanel
@@ -102,6 +102,8 @@ class MainWindow(QMainWindow):
         self.failures: dict[str, str] = {}
         #: (effect uid, parameter name, "points" | "mask") edited on the canvas, or None (layer mask)
         self.param_target: tuple[str, str, str] | None = None
+        self.selected_box = ""
+        self.text_only = False
         self._pick_object = 1
         self._ai_prompted: set[str] = set()
         self.full_result: tuple[str, np.ndarray] | None = None
@@ -153,6 +155,8 @@ class MainWindow(QMainWindow):
         self.canvas.rect_drawn.connect(self.add_mask_shape)
         self.canvas.point_clicked.connect(self.on_point_clicked)
         self.canvas.point_moved.connect(self.on_point_moved)
+        self.canvas.text_box_geometry.connect(self.on_text_geometry)
+        self.canvas.text_box_selected.connect(self.select_box)
         self.canvas.escape_pressed.connect(self.end_canvas_target)
         self.canvas.stroke_drawn.connect(self.add_mask_shape)
         # The preview and the variations / render-status panel share one vertical
@@ -222,6 +226,24 @@ class MainWindow(QMainWindow):
         self.layers_panel.overlay_toggled.connect(self._overlay_toggled)
         self.layers_panel.alpha_mode_changed.connect(self.on_alpha_mode)
         self.right_tabs.addTab(self.layers_panel, "Layers && Mask")
+        from .text_panel import TextPanel  # noqa: PLC0415
+
+        self.text_panel = TextPanel()
+        tp = self.text_panel
+        tp.add_text_layer.connect(self.add_text_layer)
+        tp.box_selected.connect(self.select_box)
+        tp.box_action.connect(self.on_box_action)
+        tp.box_changed.connect(self.on_box_changed)
+        tp.style_param_changed.connect(self.on_style_param_changed)
+        tp.canvas_requested.connect(self.on_text_canvas_request)
+        tp.preset_requested.connect(self.on_text_preset)
+        tp.overrides_changed.connect(self.on_text_overrides)
+        tp.lock_fragment.connect(self.on_lock_fragment)
+        tp.font_import.connect(self.import_font)
+        tp.text_only_toggled.connect(self.on_text_only)
+        tp.export_typography.connect(self.export_typography)
+        self.right_tabs.addTab(tp, "Text")
+        self.right_tabs.currentChanged.connect(lambda _i: self.update_text_overlay())
         self.right_dock = self._dock("Effect", self.right_tabs, Qt.RightDockWidgetArea, "rightDock")
 
         # Bottom: render status + tabs
@@ -464,6 +486,7 @@ class MainWindow(QMainWindow):
         self.m_file.addAction(self.a_save_as)
         self.m_file.addSeparator()
         self.m_file.addAction(self.a_export)
+        self.m_file.addAction("Export typography (transparent PNG)…", self.export_typography)
         self.m_file.addAction("Export selected variations…", lambda: self.export_variations(self.variations.selected_indices()))
         self.m_file.addAction(self.a_recipe)
         self.m_file.addSeparator()
@@ -518,6 +541,7 @@ class MainWindow(QMainWindow):
         self.m_help.addAction("Keyboard shortcuts", self.show_shortcuts)
         self.m_help.addSeparator()
         self.m_help.addAction("Generate effect contact sheet…", self.contact_sheet_dialog)
+        self.m_help.addAction("Generate typography contact sheet…", self.typography_sheet_dialog)
         self.m_help.addAction("Run engine self-test", self.run_selftest)
         self.m_help.addAction("Check FFmpeg…", self.check_ffmpeg)
         self.m_help.addAction("Open log folder", self._open_log_folder)
@@ -561,6 +585,7 @@ class MainWindow(QMainWindow):
         self.layers_panel.set_document(self.doc)
         self.gseed_edit.setText(str(self.doc.global_seed))
         self.update_mask_overlay()
+        self.refresh_text_panel()
         self.update_actions()
 
     def refresh_stack(self) -> None:
@@ -741,11 +766,12 @@ class MainWindow(QMainWindow):
         self._render_busy("Rendering preview…")
 
         full_src = self.image.rgba
+        text_only = self.text_only and any(la.kind == "text" for la in doc.layers)
 
         def work(token, progress):
             return render_document(src, doc, scale=scale, full_size=full_size, services=services, cancel=token,
                                    cache=cache, cache_prefix=prefix, on_error="skip", progress=progress,
-                                   full_source=full_src)
+                                   full_source=full_src, text_only=text_only)
 
         self.runner.submit("preview", work, on_done=self._preview_done, on_error=self._preview_error,
                            on_progress=self._on_progress, on_cancel=lambda: self._render_idle("Preview cancelled", "warning"))
@@ -1078,6 +1104,7 @@ class MainWindow(QMainWindow):
         """Called after undo/redo/reset/preset/load replaced ``self.doc``."""
         self.layers_panel.set_document(self.doc)
         self.update_mask_overlay()
+        self.refresh_text_panel()
 
     def undo(self) -> None:
         state = self.history.undo()
@@ -1137,27 +1164,53 @@ class MainWindow(QMainWindow):
         self.settings.set("show_checkerboard", bool(on))
 
     # ================================================================== AI
-    def on_canvas_request(self, uid: str, name: str, req: dict) -> None:
+    # canvas targets: effect parameters (uid) or text-box fields ("box:<uid>")
+    def _target_values(self, uid: str):
+        if uid.startswith("box:"):
+            return self.find_box(uid[4:])
         inst = self.find(uid)
-        if inst is None or self.image is None:
+        return inst.params if inst is not None else None
+
+    def _set_target(self, uid: str, name: str, value) -> None:
+        if uid.startswith("box:"):
+            self.on_box_changed(uid[4:], name, value, True)
+            box = self.find_box(uid[4:])
+            if box is not None:
+                self.text_panel.set_value(name, box[name])
+            return
+        inst = self.find(uid)
+        if inst is None:
+            return
+        self.on_param_changed(uid, name, value, True)
+        self.effect_panel.set_param_value(name, inst.params[name])
+
+    def _target_editor(self, uid: str, name: str):
+        if uid.startswith("box:"):
+            return self.text_panel.editor(name) if self.text_panel.current_uid() == uid[4:] else None
+        return self.effect_panel.editor(name) if self.effect_panel.current_uid() == uid else None
+
+    def on_canvas_request(self, uid: str, name: str, req: dict) -> None:
+        vals = self._target_values(uid)
+        if vals is None or self.image is None:
             return
         action = req.get("action")
         if action == "points":
             if req.get("on"):
                 self.param_target = (uid, name, "points")
-                pts = inst.params.get(name) or []
+                pts = vals.get(name) or []
                 self._pick_object = max([int(p[3]) for p in pts] or [1])
                 self.set_tool(TOOL_POINTS, for_effect=True)
                 self.canvas.set_points(pts)
-                self.set_status("Click the object in the preview (right-click = exclude). Esc finishes.")
+                self.set_status("Click on the preview (right-click = exclude / clockwise; drag a point to move it). "
+                                "Esc finishes.")
             else:
                 self.end_canvas_target()
         elif action == "new_object":
-            pts = inst.params.get(name) or []
+            pts = vals.get(name) or []
             self._pick_object = max([int(p[3]) for p in pts] or [0]) + 1
             if self.param_target is None or self.param_target[:2] != (uid, name):
                 self.on_canvas_request(uid, name, {"action": "points", "on": True})
-                ed = self.effect_panel.editor(name)
+                ed = self._target_editor(uid, name)
                 if ed is not None and hasattr(ed, "set_picking"):
                     ed.set_picking(True)
             self.set_status(f"Picking object {self._pick_object}: click it in the preview.")
@@ -1168,16 +1221,17 @@ class MainWindow(QMainWindow):
                 return
             self.param_target = (uid, name, "mask")
             self.set_tool({"brush": TOOL_BRUSH, "rect": TOOL_RECT, "erase": TOOL_ERASE}[tool], for_effect=True)
-            self.set_status(f"Painting the '{get_effect(inst.effect_id).param(name).label}' of "
-                            f"{inst.display_name()}. Esc finishes.")
+            self.set_status("Painting on the preview. Esc finishes.")
 
     def end_canvas_target(self, set_pan: bool = True) -> None:
         if self.param_target is None:
+            if set_pan and self.canvas.tool() == TOOL_TEXT:
+                self.canvas.set_tool(TOOL_PAN)
             return
         uid, name, kind = self.param_target
         self.param_target = None
         self.canvas.set_points(None)
-        ed = self.effect_panel.editor(name) if self.effect_panel.current_uid() == uid else None
+        ed = self._target_editor(uid, name)
         if ed is not None:
             if kind == "points" and hasattr(ed, "set_picking"):
                 ed.set_picking(False)
@@ -1192,27 +1246,298 @@ class MainWindow(QMainWindow):
         if self.param_target is None or self.param_target[2] != "points":
             return
         uid, name, _ = self.param_target
-        inst = self.find(uid)
-        if inst is None:
+        vals = self._target_values(uid)
+        if vals is None:
             return
-        pts = list(inst.params.get(name) or []) + [[x, y, int(label), self._pick_object]]
-        self.on_param_changed(uid, name, pts, True)
-        self.effect_panel.set_param_value(name, inst.params[name])
-        self.canvas.set_points(inst.params[name])
+        self._set_target(uid, name, list(vals.get(name) or []) + [[x, y, int(label), self._pick_object]])
+        self.canvas.set_points(self._target_values(uid).get(name))
 
     def on_point_moved(self, index: int, x: float, y: float) -> None:
         if self.param_target is None or self.param_target[2] != "points":
             return
         uid, name, _ = self.param_target
-        inst = self.find(uid)
-        if inst is None:
+        vals = self._target_values(uid)
+        if vals is None:
             return
-        pts = [list(p) for p in (inst.params.get(name) or [])]
+        pts = [list(p) for p in (vals.get(name) or [])]
         if 0 <= index < len(pts):
             pts[index][0], pts[index][1] = x, y
-            self.on_param_changed(uid, name, pts, True)
-            self.effect_panel.set_param_value(name, inst.params[name])
-            self.canvas.set_points(inst.params[name])
+            self._set_target(uid, name, pts)
+            self.canvas.set_points(self._target_values(uid).get(name))
+
+    # ================================================================ text
+    def text_layer(self):
+        layer = self.doc.layer
+        return layer if layer.kind == "text" else None
+
+    def find_box(self, uid: str):
+        for layer in self.doc.layers:
+            for b in layer.boxes:
+                if b["uid"] == uid:
+                    return b
+        return None
+
+    def refresh_text_panel(self) -> None:
+        from ..engine.typography.extras import load_typography_presets  # noqa: PLC0415
+        from ..engine.typography.render import box_report  # noqa: PLC0415
+
+        layer = self.text_layer()
+        report = None
+        if layer is not None and self.image is not None:
+            boxes = layer.boxes
+            if self.selected_box not in {b["uid"] for b in boxes}:
+                self.selected_box = boxes[0]["uid"] if boxes else ""
+            box = self.find_box(self.selected_box)
+            if box is not None:
+                try:
+                    report = box_report(box, self.image.width, self.image.height)
+                except Exception:  # pragma: no cover - informative only
+                    report = None
+        self.text_panel.set_state(layer, self.selected_box, report, load_typography_presets())
+        self.update_text_overlay()
+
+    def update_text_overlay(self) -> None:
+        layer = self.text_layer()
+        show = layer is not None and self.right_tabs.currentWidget() is self.text_panel
+        self.canvas.set_text_boxes(layer.boxes if show else None, self.selected_box)
+
+    def add_text_layer(self) -> None:
+        from ..engine.typography.model import new_box  # noqa: PLC0415
+
+        n = sum(1 for la in self.doc.layers if la.kind == "text") + 1
+        box = new_box("Paste your lyrics here", x=0.5, y=0.5, w=0.7, h=0.3, size=0.07, align="center",
+                      valign="middle", fit=True)
+        layer = Layer(name=f"Text {n}", kind="text", boxes=[box])
+        i = self.doc.active_layer
+        self.doc.layers.insert(i + 1, layer)
+        self.doc.active_layer = i + 1
+        self.selected_uid = ""
+        self.selected_box = box["uid"]
+        self.commit("Add text layer", rebuild_panel=True)
+        self.layers_panel.set_document(self.doc)
+        self.right_tabs.setCurrentWidget(self.text_panel)
+        self.refresh_text_panel()
+
+    def on_box_action(self, action: str, uid: str) -> None:
+        from ..engine.typography.model import coerce_box, new_box  # noqa: PLC0415
+
+        layer = self.text_layer()
+        if layer is None:
+            return
+        idx = next((i for i, b in enumerate(layer.boxes) if b["uid"] == uid), -1)
+        if action == "add":
+            b = new_box("New text", x=0.5, y=0.3 + 0.1 * (len(layer.boxes) % 5), w=0.6, h=0.2, size=0.05)
+            layer.boxes.append(b)
+            self.selected_box = b["uid"]
+        elif action == "duplicate" and idx >= 0:
+            import uuid  # noqa: PLC0415
+
+            d = coerce_box(dict(layer.boxes[idx], uid=uuid.uuid4().hex[:10]))
+            d["y"] = min(1.2, d["y"] + 0.05)
+            layer.boxes.insert(idx + 1, d)
+            self.selected_box = d["uid"]
+        elif action == "remove" and idx >= 0:
+            del layer.boxes[idx]
+            self.selected_box = layer.boxes[min(idx, len(layer.boxes) - 1)]["uid"] if layer.boxes else ""
+        else:
+            return
+        self.commit(f"Text box: {action}")
+        self.layers_panel.set_document(self.doc)
+        self.refresh_text_panel()
+
+    def select_box(self, uid: str) -> None:
+        if uid and uid != self.selected_box:
+            self.selected_box = uid
+            self.refresh_text_panel()
+
+    def on_box_changed(self, uid: str, field: str, value, final: bool) -> None:
+        from ..engine.typography.model import BOX_PARAM  # noqa: PLC0415
+
+        box = self.find_box(uid)
+        if box is None:
+            return
+        box[field] = str(value) if field == "text" else BOX_PARAM[field].coerce(value)
+        self.commit(f"Text {field}", coalesce=f"box:{uid}:{field}", rebuild_stack=False)
+        if field in ("style", "text"):
+            if field == "style":
+                self.refresh_text_panel()
+            self.layers_panel.set_document(self.doc)
+        if field in ("x", "y", "w", "h", "rotation"):
+            self.update_text_overlay()
+        if field in ("text", "size", "w", "h", "fit", "wrap", "preserve_breaks", "font", "line_spacing", "tracking",
+                     "min_size", "layout"):
+            from ..engine.typography.render import box_report  # noqa: PLC0415
+
+            try:
+                self.text_panel.set_report(box_report(box, self.image.width, self.image.height))
+            except Exception:  # pragma: no cover
+                pass
+
+    def on_style_param_changed(self, uid: str, style: str, name: str, value, final: bool) -> None:
+        from ..engine.typography.model import style_param  # noqa: PLC0415
+
+        box = self.find_box(uid)
+        if box is None:
+            return
+        box["style_params"].setdefault(style, {})[name] = style_param(style, name).coerce(value)
+        self.commit(f"Text style {name}", coalesce=f"box:{uid}:{style}:{name}", rebuild_stack=False)
+
+    def on_text_geometry(self, uid: str, geom: dict, final: bool) -> None:
+        box = self.find_box(uid)
+        if box is None:
+            return
+        for k, v in geom.items():
+            box[k] = float(v)
+        self.commit("Move text box", coalesce=f"box:{uid}:geometry", rebuild_stack=False)
+        for k in geom:
+            self.text_panel.set_value(k, box[k])
+
+    def on_text_canvas_request(self, uid: str, field: str, req: dict) -> None:
+        if req.get("action") == "text":
+            if req.get("on"):
+                self.end_canvas_target(set_pan=False)
+                self.canvas.set_tool(TOOL_TEXT)
+                self.update_text_overlay()
+                self.set_status("Drag a text box to move it, its corners to resize, the round handle to rotate.")
+            else:
+                self.canvas.set_tool(TOOL_PAN)
+            return
+        self.on_canvas_request("box:" + uid, field, req)
+
+    def on_text_preset(self, uid: str, kind: str, name: str) -> None:
+        from ..engine.typography import extras  # noqa: PLC0415
+        from ..engine.typography.model import layout_preset, style_preset  # noqa: PLC0415
+
+        layer = self.text_layer()
+        box = self.find_box(uid)
+        if layer is None or box is None:
+            return
+        if kind == "layout":
+            new = layout_preset(name, box)
+        elif kind == "style":
+            new = style_preset(name, box)
+        elif kind == "reroll":
+            import secrets  # noqa: PLC0415
+
+            new = dict(box, seed=secrets.randbelow(2**31 - 1))
+        elif kind == "saved":
+            pre = next((p for p in extras.load_typography_presets() if p["name"] == name), None)
+            if pre is None:
+                return
+            new = extras.apply_preset(box, pre)
+        elif kind == "save":
+            nm, ok = QInputDialog.getText(self, "Save typography preset", "Name:")
+            if ok and nm.strip():
+                extras.save_typography_preset(box, nm.strip())
+                self.refresh_text_panel()
+            return
+        else:
+            return
+        i = next(i for i, b in enumerate(layer.boxes) if b["uid"] == uid)
+        layer.boxes[i] = new
+        self.commit(f"Text preset: {name or kind}")
+        self.refresh_text_panel()
+
+    def on_text_overrides(self, uid: str, overrides) -> None:
+        from ..engine.typography.model import coerce_box  # noqa: PLC0415
+
+        box = self.find_box(uid)
+        if box is None:
+            return
+        box["overrides"] = coerce_box(dict(box, overrides=list(overrides)))["overrides"]
+        self.commit("Text style override")
+        self.refresh_text_panel()
+
+    def on_lock_fragment(self, uid: str, word: int, lock: bool) -> None:
+        from ..engine.typography.render import fragment_state  # noqa: PLC0415
+
+        box = self.find_box(uid)
+        if box is None:
+            return
+        locks = dict(box["style_params"]["cut"].get("locks") or {})
+        if lock:
+            locks[str(word)] = fragment_state(box, word)
+        else:
+            locks.pop(str(word), None)
+        box["style_params"]["cut"]["locks"] = locks
+        self.commit("Lock fragment" if lock else "Unlock fragment")
+        self.refresh_text_panel()
+
+    def import_font(self) -> None:
+        from ..engine.typography import fonts  # noqa: PLC0415
+
+        path, _ = QFileDialog.getOpenFileName(self, "Import font", "", "Fonts (*.ttf *.otf *.ttc)")
+        if not path:
+            return
+        try:
+            info = fonts.REGISTRY.import_font(path)
+        except ValueError as exc:
+            QMessageBox.warning(self, "Import font", str(exc))
+            return
+        box = self.find_box(self.selected_box)
+        if box is not None:
+            self.on_box_changed(box["uid"], "font", info.id, True)
+        self.refresh_text_panel()
+        self.set_status(f"Imported font {info.label}. Check its licence before distributing work that embeds it.")
+
+    def on_text_only(self, on: bool) -> None:
+        self.text_only = bool(on)
+        self.schedule_preview()
+
+    def export_typography(self) -> None:
+        from ..engine.typography.extras import export_typography_png  # noqa: PLC0415
+
+        if self.image is None or not any(la.kind == "text" for la in self.doc.layers):
+            QMessageBox.information(self, "Export typography", "Add a text layer first.")
+            return
+        start = os.path.join(self.settings.get("export_folder") or os.path.expanduser("~"), "typography.png")
+        path, _ = QFileDialog.getSaveFileName(self, "Export typography (transparent PNG)", start, "PNG (*.png)")
+        if not path:
+            return
+        try:
+            export_typography_png(self.image.rgba, self.doc, path, overwrite=True)
+        except GlitchLabError as exc:
+            self.show_error("Export typography", exc)
+            return
+        self.set_status(f"Typography exported to {path}", "ok")
+
+    def check_fonts(self) -> None:
+        """Offer substitutes for fonts the project uses but this computer lacks."""
+        from ..engine.typography import fonts  # noqa: PLC0415
+        from ..engine.typography.extras import missing_document_fonts, substitute_font  # noqa: PLC0415
+
+        missing = missing_document_fonts(self.doc)
+        if not missing:
+            return
+        choices = [f.id.replace("|", " — ") for f in fonts.REGISTRY.all()]
+        changed = False
+        for fid in missing:
+            item, ok = QInputDialog.getItem(
+                self, "Missing font", f"The font '{fid.replace('|', ' ')}' used in this project is not installed. "
+                "Choose a replacement (Cancel keeps a temporary substitute):", choices, 0, False)
+            if ok and item:
+                substitute_font(self.doc, fid, item.replace(" — ", "|"))
+                changed = True
+        if changed:
+            self.commit("Replace missing fonts")
+            self.refresh_text_panel()
+
+    def typography_sheet_dialog(self) -> None:
+        from ..engine.typography.extras import type_contact_sheet  # noqa: PLC0415
+
+        start = os.path.join(self.settings.get("export_folder") or os.path.expanduser("~"), "typography_styles.png")
+        path, _ = QFileDialog.getSaveFileName(self, "Save typography contact sheet", start, "PNG image (*.png)")
+        if not path:
+            return
+        photo = self.image.rgba if self.image is not None else None
+        if photo is not None and max(photo.shape[:2]) > 900:
+            from ..engine.ops import resize_rgba  # noqa: PLC0415
+
+            h, w = photo.shape[:2]
+            s = 900 / max(h, w)
+            photo = resize_rgba(photo, int(w * s), int(h * s), interpolation="area")
+        type_contact_sheet(path, photo)
+        self.set_status(f"Typography contact sheet written to {path}", "ok")
 
     def install_ai_engine(self) -> None:
         from .ai_dialogs import install_engine  # noqa: PLC0415
@@ -1452,6 +1777,9 @@ class MainWindow(QMainWindow):
         self.refresh_effect_panel()
         self.layers_panel.set_document(self.doc)
         self.update_mask_overlay()
+        self.refresh_text_panel()
+        if self.doc.layer.kind == "text":
+            self.right_tabs.setCurrentWidget(self.text_panel)
         self.update_actions()
 
     def on_layer_changed(self, field: str, value, final: bool) -> None:
@@ -1464,6 +1792,8 @@ class MainWindow(QMainWindow):
             layer.visible = bool(value)
         elif field == "name":
             layer.name = str(value)[:60]
+        elif field == "source":
+            layer.source = "below" if value == "below" else "original"
         self.commit(f"Layer {field}", coalesce=f"layer:{layer.uid}:{field}", rebuild_stack=field == "name",
                     preview=field != "name")
         if field != "opacity":
@@ -1472,6 +1802,9 @@ class MainWindow(QMainWindow):
     def layer_action(self, key: str) -> None:
         layers = self.doc.layers
         i = self.doc.active_layer
+        if key == "add_text":
+            self.add_text_layer()
+            return
         if key == "add":
             layers.insert(i + 1, Layer(name=f"Layer {len(layers) + 1}"))
             self.doc.active_layer = i + 1
@@ -1543,13 +1876,12 @@ class MainWindow(QMainWindow):
             return
         if self.param_target is not None and self.param_target[2] == "mask":
             uid, name, _ = self.param_target
-            inst = self.find(uid)
-            if inst is not None:
-                value = dict(inst.params.get(name) or {})
+            vals = self._target_values(uid)
+            if vals is not None:
+                value = dict(vals.get(name) or {})
                 value["shapes"] = list(value.get("shapes", [])) + [shape]
                 value["enabled"] = True
-                self.on_param_changed(uid, name, value, True)
-                self.effect_panel.set_param_value(name, inst.params[name])
+                self._set_target(uid, name, value)
                 self.update_mask_overlay()
             return
         mask = self.doc.layer.mask
@@ -1584,10 +1916,10 @@ class MainWindow(QMainWindow):
             self.canvas.set_mask_overlay(None)
             return
         if self.param_target is not None and self.param_target[2] == "mask":
-            inst = self.find(self.param_target[0])
+            vals = self._target_values(self.param_target[0])
             from ..engine.model import MaskSpec  # noqa: PLC0415
 
-            spec = MaskSpec.from_dict(inst.params.get(self.param_target[1]) if inst else {})
+            spec = MaskSpec.from_dict(vals.get(self.param_target[1]) if vals else {})
             h, w = self.preview_src.shape[:2]
             m = None if spec.is_identity() else rasterize_mask(spec, w, h, self.preview_src)
             self.canvas.set_mask_overlay(None if m is None else QPixmap.fromImage(mask_overlay_qimage(m)))
@@ -1846,6 +2178,7 @@ class MainWindow(QMainWindow):
         self.schedule_preview()
         self.settings.add_recent("recent_projects", os.path.abspath(path))
         self.set_status(f"Opened project {os.path.basename(path)} ({proj.source.width}×{proj.source.height})", "ok")
+        QTimer.singleShot(0, self.check_fonts)
         notes = proj.model_revision_notes()
         if notes:
             self.set_status(" ".join(notes), "warning")
