@@ -68,6 +68,8 @@ class EffectContext:
     owner: str = ""
     #: True when the effect may change transparency (supports_alpha and "Affect alpha" is on).
     affect_alpha: bool = False
+    #: True for interactive previews (expensive AI generation then waits for the user's go-ahead).
+    interactive: bool = False
 
     def check(self) -> None:
         self.cancel.check()
@@ -202,6 +204,7 @@ def apply_effect(
     progress_cb: Callable[[float], None] | None = None,
     input_key: str | None = None,
     full_input: Callable[[], np.ndarray] | None = None,
+    interactive: bool = False,
 ) -> np.ndarray:
     """Apply one effect instance to ``img`` (uint8 RGBA). Returns a new array."""
     if not inst.enabled or inst.mix <= 0.0:
@@ -217,7 +220,7 @@ def apply_effect(
         cancel=cancel, services=services, warnings=warnings if warnings is not None else [],
         progress_cb=progress_cb, effect_label=inst.display_name(), input_key=input_key,
         full_input=full_input if full_input is not None else (lambda: img), owner=inst.uid,
-        affect_alpha=bool(eff.supports_alpha and inst.affect_alpha))
+        affect_alpha=bool(eff.supports_alpha and inst.affect_alpha), interactive=interactive)
     src = img
     if src.flags.writeable:
         src = img.view()

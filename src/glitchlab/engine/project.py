@@ -60,6 +60,22 @@ class Project:
     selection: dict = field(default_factory=dict)
     render_sha256: str | None = None
     path: str | None = None
+    #: AI model revisions the project was saved with {model id: {"repo", "revision"}}.
+    ai_models: dict = field(default_factory=dict)
+
+    def model_revision_notes(self) -> list[str]:
+        """Human-readable notes when this program uses other AI model revisions than the project."""
+        from ..ai.models import MODELS  # noqa: PLC0415
+
+        notes = []
+        for mid, info in self.ai_models.items():
+            cur = MODELS.get(mid)
+            if cur is None:
+                notes.append(f"The project used an AI model this version does not know ({info.get('repo')}).")
+            elif info.get("revision") != cur.revision:
+                notes.append(f"The project was made with {cur.name} revision {str(info.get('revision'))[:10]}; this "
+                             f"version uses {cur.revision[:10]}, so AI results may differ.")
+        return notes
 
     def source_info(self) -> SourceInfo:
         name = os.path.splitext(self.original_name or "image")[0]
@@ -133,6 +149,7 @@ def save_project(path: str, project: Project, *, include_original: bool = True) 
         "presets": project.presets,
         "selection": project.selection,
         "render_sha256": project.render_sha256,
+        "ai_models": ai_models_used(project.document),
         "source": {
             "working": "source/working.png",
             "working_sha256": src.sha256(),
@@ -239,7 +256,21 @@ def load_project(path: str) -> Project:
                                   document=Document.from_dict(_unpack_assets(f["document"], asset_dir)), thumb=thumb))
     return Project(document=doc, source=li, original_bytes=original, original_name=s.get("original_name", ""),
                    favourites=favs, presets=list(meta.get("presets", [])), selection=dict(meta.get("selection", {})),
-                   render_sha256=meta.get("render_sha256"), path=path)
+                   render_sha256=meta.get("render_sha256"), path=path, ai_models=dict(meta.get("ai_models") or {}))
+
+
+def ai_models_used(doc: Document) -> dict:
+    """{model id: {repo, revision}} for every AI model the document's effects use."""
+    from ..ai.models import MODELS  # noqa: PLC0415
+    from .effects.base import REGISTRY  # noqa: PLC0415
+
+    out = {}
+    for inst in doc.all_effects():
+        eff = REGISTRY.get(inst.effect_id)
+        for mid in getattr(eff, "ai_models", ()) or ():
+            spec = MODELS[mid]
+            out[mid] = {"repo": spec.repo, "revision": spec.revision}
+    return out
 
 
 def project_from_image(li: LoadedImage, doc: Document) -> Project:

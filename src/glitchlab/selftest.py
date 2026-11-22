@@ -65,7 +65,17 @@ def run_selftest(services=None) -> tuple[bool, str]:
 
     check("image import/export", io_roundtrip)
 
+    from .ai import models as ai_models  # noqa: PLC0415 - no PyTorch import
+    from .ai import runtime as ai_runtime  # noqa: PLC0415
+
+    ai_ready = ai_runtime.engine_available()
     for eid in sorted(REGISTRY):
+        eff = REGISTRY[eid]
+        if eff.ai_models and (not ai_ready or ai_models.missing(eff.ai_models)):
+            lines.append(f"AI    effect {eid}: optional local AI effect; engine or model weights not installed "
+                         "(run glitchlab-cli --ai-selftest after installing them)")
+            continue
+
         def run(eid=eid):
             inst = EffectInstance.create(eid, seed=99)
             a = render_full(photo, Document.single([inst], 1), services=services).image
@@ -78,7 +88,13 @@ def run_selftest(services=None) -> tuple[bool, str]:
             return image_hash(a)[:12]
         check(f"effect {eid}", run)
 
+    from .engine.presets import is_ai_preset  # noqa: PLC0415
+
     for p in BUILTIN_PRESETS:
+        if is_ai_preset(p) and (not ai_ready or any(ai_models.missing(REGISTRY[fx["effect"]].ai_models)
+                                                    for fx in p["stack"])):
+            lines.append(f"AI    preset {p['name']}: optional local AI preset; engine or model weights not installed")
+            continue
         if all(fx["effect"] in REGISTRY for fx in p["stack"]):
             check(f"preset {p['name']}", lambda p=p: image_hash(render_full(photo, apply_preset(Document.new(1), p),
                                                                             services=services).image)[:12])

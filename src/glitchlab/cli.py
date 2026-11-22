@@ -8,6 +8,10 @@ Examples::
     glitchlab-cli --preset "Broken Broadcast" --render photo.jpg -o out.png
     glitchlab-cli --contact-sheet sheet.png
     glitchlab-cli --selftest report.txt
+    glitchlab-cli --ai-status
+    glitchlab-cli --ai-install-engine
+    glitchlab-cli --ai-download depth dinov2        (or: all)
+    glitchlab-cli --ai-selftest ai-report.txt --ai-out results/
 """
 
 from __future__ import annotations
@@ -45,8 +49,25 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--contact-sheet", metavar="FILE", help="render the effect contact sheet to FILE")
     ap.add_argument("--selftest", metavar="REPORT", nargs="?", const="-", help="run engine self-test")
     ap.add_argument("--ffmpeg", metavar="PATH", help="FFmpeg executable to use")
+    ap.add_argument("--ai-status", action="store_true", help="show the AI engine and model status")
+    ap.add_argument("--ai-install-engine", action="store_true", help="download and install the AI engine")
+    ap.add_argument("--ai-download", nargs="+", metavar="MODEL", help="download AI models (ids or 'all')")
+    ap.add_argument("--ai-selftest", metavar="REPORT", nargs="?", const="-", help="test the AI effects with "
+                    "the real models")
+    ap.add_argument("--ai-image", metavar="FILE", help="image for --ai-selftest")
+    ap.add_argument("--ai-out", metavar="DIR", help="save --ai-selftest results here")
+    ap.add_argument("--ai-device", choices=("auto", "cpu", "cuda", "mps"), help="where AI effects run")
     args = ap.parse_args(argv)
     setup_logging(logging.WARNING, to_file=False)
+    from .ai import runtime as ai_runtime
+
+    ai_runtime.activate()
+    if args.ai_device:
+        from .ai import support as ai_support
+
+        ai_support.DEVICE_PREFERENCE = args.ai_device
+    if args.ai_status or args.ai_install_engine or args.ai_download or args.ai_selftest:
+        return _ai(args)
 
     from .engine.services import EngineServices
     services = EngineServices(ffmpeg_path=args.ffmpeg)
@@ -82,6 +103,59 @@ def main(argv: list[str] | None = None) -> int:
         return _render(args, services)
     ap.print_help()
     return 0
+
+
+def _progress_printer():
+    state = {"t": 0.0}
+
+    def prog(done, total, label):
+        now = time.monotonic()
+        if now - state["t"] > 2.0 or done >= total:
+            state["t"] = now
+            _print(f"  {done / 2**20:8.1f} / {total / 2**20:.1f} MB  {label}")
+    return prog
+
+
+def _ai(args) -> int:
+    from .ai import models as ai_models
+    from .ai import runtime as ai_runtime
+    from .engine.errors import GlitchLabError
+
+    try:
+        if args.ai_install_engine:
+            _print("Installing the AI engine…")
+            ai_runtime.install(_progress_printer())
+            _print("AI engine installed: " + ai_runtime.status().message)
+        if args.ai_download:
+            ids = list(ai_models.MODELS) if args.ai_download == ["all"] else args.ai_download
+            unknown = [m for m in ids if m not in ai_models.MODELS]
+            if unknown:
+                _print("Unknown model(s): " + ", ".join(unknown) + ". Known: " + ", ".join(ai_models.MODELS))
+                return 2
+            ai_models.install(ids, _progress_printer())
+            _print("Downloaded: " + ", ".join(ids))
+        if args.ai_status:
+            _print("AI engine: " + ai_runtime.status().message)
+            for mid, spec in ai_models.MODELS.items():
+                state = "installed" if ai_models.is_installed(mid) else "not downloaded"
+                _print(f"  {mid:13s} {spec.name:34s} {spec.size_text:>8s}  {spec.licence:22s} {state}")
+        if args.ai_selftest:
+            from .ai.selftest import run_ai_selftest
+            from .engine.image_io import load_image
+
+            image = load_image(args.ai_image).rgba if args.ai_image else None
+            ok, report = run_ai_selftest(image, args.ai_out)
+            if args.ai_selftest == "-":
+                _print(report)
+            else:
+                with open(args.ai_selftest, "w", encoding="utf-8") as f:
+                    f.write(report)
+                _print(report)
+            return 0 if ok else 1
+        return 0
+    except GlitchLabError as exc:
+        _print(f"error: {exc.message}")
+        return 1
 
 
 def _render(args, services) -> int:

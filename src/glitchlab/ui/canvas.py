@@ -27,6 +27,7 @@ TOOL_PAN = "pan"
 TOOL_RECT = "rect"
 TOOL_BRUSH = "brush"
 TOOL_ERASE = "erase"
+TOOL_POINTS = "points"
 
 
 def _checker_tile(size: int = 8) -> QPixmap:
@@ -45,6 +46,8 @@ class PreviewCanvas(QWidget):
     rect_drawn = Signal(dict)
     stroke_drawn = Signal(dict)
     files_dropped = Signal(list)
+    point_clicked = Signal(float, float, int)   # normalised x, y, label (1 = object, 0 = exclude)
+    escape_pressed = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -75,6 +78,7 @@ class PreviewCanvas(QWidget):
         self._checker_brush = QBrush(_checker_tile())
         self._fitted_once = False
         self._fit_mode = True
+        self._points: list = []
 
     # ------------------------------------------------------------------ API
     def has_image(self) -> bool:
@@ -307,10 +311,42 @@ class PreviewCanvas(QWidget):
                 p.setPen(QPen(col, rad * 2, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
                 p.setBrush(Qt.NoBrush)
                 p.drawPath(path)
+        if self._tool == TOOL_POINTS or self._points:
+            self._paint_points(p)
         if self._tool in (TOOL_BRUSH, TOOL_ERASE) and self._cursor_pos is not None and self._result is not None:
             p.setPen(QPen(QColor("#ffffff"), 1))
             p.setBrush(Qt.NoBrush)
             p.drawEllipse(self._cursor_pos, self._brush_screen_radius(), self._brush_screen_radius())
+
+    def set_points(self, points: list | None) -> None:
+        """Object-selection points to draw ([x, y, label, object] in 0..1)."""
+        self._points = list(points or [])
+        self.update()
+
+    def _paint_points(self, p: QPainter) -> None:
+        if not self._points or not self._img_w:
+            return
+        r = self._image_rect()
+        f = QFont(self.font())
+        f.setPointSizeF(8.0)
+        f.setBold(True)
+        p.setFont(f)
+        for x, y, label, obj in self._points:
+            c = QPointF(r.left() + x * r.width(), r.top() + y * r.height())
+            col = QColor("#36f27a") if label else QColor("#ff4060")
+            p.setPen(QPen(QColor("#000000"), 4))
+            p.drawEllipse(c, 7, 7)
+            p.setPen(QPen(col, 2))
+            p.setBrush(Qt.NoBrush)
+            p.drawEllipse(c, 7, 7)
+            if label:
+                p.drawLine(c + QPointF(-4, 0), c + QPointF(4, 0))
+                p.drawLine(c + QPointF(0, -4), c + QPointF(0, 4))
+            else:
+                p.drawLine(c + QPointF(-4, -4), c + QPointF(4, 4))
+                p.drawLine(c + QPointF(-4, 4), c + QPointF(4, -4))
+            p.setPen(QPen(QColor("#ffffff"), 1))
+            p.drawText(c + QPointF(9, -7), str(int(obj)))
 
     def _brush_screen_radius(self) -> float:
         return max(1.0, self.brush_radius * max(self._img_w, self._img_h) * self._zoom)
@@ -359,6 +395,11 @@ class PreviewCanvas(QWidget):
                 self._drag = ("rect", pos, e.button() == Qt.RightButton or bool(e.modifiers() & Qt.AltModifier))
             elif self._tool in (TOOL_BRUSH, TOOL_ERASE):
                 self._drag = ("stroke", [pos])
+            elif self._tool == TOOL_POINTS:
+                x, y = self._to_norm(pos)
+                if 0.0 <= x <= 1.0 and 0.0 <= y <= 1.0:
+                    label = 0 if (e.button() == Qt.RightButton or e.modifiers() & Qt.AltModifier) else 1
+                    self.point_clicked.emit(float(x), float(y), label)
             self.update()
 
     def mouseMoveEvent(self, e):  # noqa: N802
@@ -410,6 +451,8 @@ class PreviewCanvas(QWidget):
         self.update()
 
     def keyPressEvent(self, e):  # noqa: N802
+        if e.key() == Qt.Key_Escape:
+            self.escape_pressed.emit()
         if e.key() == Qt.Key_Space and not e.isAutoRepeat():
             self._space = True
             self.setCursor(Qt.OpenHandCursor)

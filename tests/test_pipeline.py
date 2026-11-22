@@ -199,7 +199,10 @@ def test_builtin_presets_valid_params():
 
 
 def test_presets_apply_and_render(photo):
-    presets = available_builtin_presets()
+    from glitchlab.engine.presets import is_ai_preset
+
+    # Local-AI presets need PyTorch and model weights (tests/test_ai*.py).
+    presets = [p for p in available_builtin_presets() if not is_ai_preset(p)]
     assert len(presets) >= 3
     for preset in presets:
         doc = apply_preset(Document.new(1), preset)

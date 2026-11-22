@@ -40,6 +40,9 @@ class EffectPanel(QWidget):
     randomize_requested = Signal(str)
     duplicate_requested = Signal(str)
     remove_requested = Signal(str)
+    canvas_requested = Signal(str, str, object)   # uid, param name, request dict
+    generate_requested = Signal(str)
+    models_requested = Signal(object)              # list of model ids to download
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -93,6 +96,7 @@ class EffectPanel(QWidget):
         self._rows = {}
         self._locks = {}
         eff = get_effect(inst.effect_id)
+        self._effect = eff
         self._values = dict(inst.params)
         body = QWidget()
         lay = QVBoxLayout(body)
@@ -121,6 +125,9 @@ class EffectPanel(QWidget):
         self.status_label.setWordWrap(True)
         self.status_label.setVisible(bool(status))
         lay.addWidget(self.status_label)
+        self.info_label = None
+        if eff.ai_models:
+            lay.addWidget(self._ai_box(eff, inst))
 
         # --- common controls ------------------------------------------------
         common = QGroupBox("Effect")
@@ -209,12 +216,13 @@ class EffectPanel(QWidget):
             ed = make_editor(prm)
             ed.set_value(inst.params.get(prm.name, prm.default))
             ed.value_changed.connect(lambda v, final, n=prm.name: self._param_edited(n, v, final))
+            ed.canvas_request.connect(lambda req, n=prm.name: self.canvas_requested.emit(self._uid, n, req))
             lock = QToolButton()
             lock.setObjectName("lockButton")
             lock.setText("lock")
             lock.setCheckable(True)
             lock.setChecked(prm.name in inst.locked_params)
-            lock.setEnabled(prm.randomizable and prm.kind not in ("hex", "text", "file", "color"))
+            lock.setEnabled(prm.randomizable and prm.kind not in ("hex", "text", "file", "color", "points", "mask"))
             lock.setToolTip("Lock: the Variation Grid will not change this parameter.")
             lock.toggled.connect(lambda on, n=prm.name: self.lock_changed.emit(self._uid, n, bool(on)))
             holder = QWidget()
@@ -291,8 +299,79 @@ class EffectPanel(QWidget):
             ed.set_value(default)
             self._param_edited(name, default, True)
 
+    def _ai_box(self, eff, inst) -> QGroupBox:
+        from ..ai import models as ai_models  # noqa: PLC0415 - no PyTorch import
+        from ..ai import runtime  # noqa: PLC0415
+
+        box = QGroupBox("Local AI")
+        v = QVBoxLayout(box)
+        v.setSpacing(4)
+        missing = ai_models.missing(eff.ai_models)
+        names = ", ".join(f"{ai_models.MODELS[m].name} ({ai_models.MODELS[m].size_text}, "
+                          f"{ai_models.MODELS[m].licence})" for m in eff.ai_models)
+        lab = QLabel("Model: " + names)
+        lab.setWordWrap(True)
+        lab.setObjectName("muted")
+        v.addWidget(lab)
+        if not runtime.engine_available():
+            warn = QLabel("The AI engine is not installed yet (AI › Install AI engine…).")
+            warn.setObjectName("warning")
+            warn.setWordWrap(True)
+            v.addWidget(warn)
+        if missing:
+            row = QHBoxLayout()
+            warn = QLabel("Model weights not downloaded.")
+            warn.setObjectName("warning")
+            warn.setWordWrap(True)
+            b = QPushButton("Download…")
+            b.clicked.connect(lambda: self.models_requested.emit(list(missing)))
+            row.addWidget(warn, 1)
+            row.addWidget(b)
+            v.addLayout(row)
+        self.info_label = QLabel(eff.info(eff.coerce_params(inst.params)))
+        self.info_label.setWordWrap(True)
+        self.info_label.setObjectName("muted")
+        self.info_label.setVisible(bool(self.info_label.text()))
+        v.addWidget(self.info_label)
+        if eff.heavy:
+            row = QHBoxLayout()
+            gen = QPushButton("Generate")
+            gen.setObjectName("primary")
+            gen.setToolTip("Run the AI generation for the current settings (it can take minutes on a processor). "
+                           "Progress and Cancel are in the status bar.")
+            gen.clicked.connect(lambda: self.generate_requested.emit(self._uid))
+            row.addWidget(gen)
+            row.addStretch(1)
+            v.addLayout(row)
+        return box
+
+    def editor(self, name: str):
+        return self._editors.get(name)
+
+    def set_param_value(self, name: str, value) -> None:
+        """Update one editor (and the cached value) without rebuilding the panel."""
+        ed = self._editors.get(name)
+        if ed is not None:
+            ed.set_value(value)
+        self._values[name] = value
+        self._refresh_info()
+
+    def _refresh_info(self) -> None:
+        if self.info_label is None or not self._uid:
+            return
+        eff = getattr(self, "_effect", None)
+        if eff is None:
+            return
+        try:
+            text = eff.info(eff.coerce_params(self._values))
+        except Exception:  # pragma: no cover - informative only
+            return
+        self.info_label.setText(text)
+        self.info_label.setVisible(bool(text))
+
     def _param_edited(self, name: str, value, final: bool) -> None:
         self._values[name] = value
+        self._refresh_info()
         self._update_visibility()
         if self._uid:
             self.param_changed.emit(self._uid, name, value, final)

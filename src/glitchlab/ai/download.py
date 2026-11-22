@@ -19,6 +19,8 @@ from .errors import AIError
 #: progress(done_bytes, total_bytes, label)
 ByteProgress = Callable[[int, int, str], None]
 CHUNK = 1 << 20
+#: Seconds of back-off before retry n is BACKOFF * 2**n (tests set it to 0).
+BACKOFF = 1.0
 USER_AGENT = f"GlitchLab/{__version__} (local model download)"
 
 
@@ -110,9 +112,10 @@ def download(url: str, dest: Path, *, size: int | None, sha256: str | None = Non
                     msg = (f"Could not download {label or url}. Check the internet connection "
                            f"(or a firewall/proxy) and try again.")
                 raise DownloadError(msg, detail=repr(exc)) from exc
-            for _ in range(int(2 ** attempt * 10)):
+            deadline = time.monotonic() + BACKOFF * 2 ** attempt
+            while time.monotonic() < deadline:
                 cancel.check()
-                time.sleep(0.1)
+                time.sleep(0.05)
     if progress:
         progress(base_done + (size or part.stat().st_size), total, label)
     if not verify_file(part, size=size, sha256=sha256, git_sha1=git_sha1):

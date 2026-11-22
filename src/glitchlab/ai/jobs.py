@@ -330,9 +330,33 @@ class JobManager:
             j.cancel.cancel()
         return len(jobs)
 
+    def in_flight(self, key: str) -> bool:
+        with self._lock:
+            job = self._jobs.get(key)
+            return job is not None and not job.cancel.cancelled
+
     def busy(self) -> bool:
         with self._lock:
             return bool(self._jobs)
+
+
+# ------------------------------------------------------------ approvals
+_APPROVED: set[str] = set()
+_ALOCK = threading.Lock()
+
+
+def approve(owner: str) -> None:
+    """Allow the next expensive generation of effect ``owner`` in interactive previews."""
+    with _ALOCK:
+        _APPROVED.add(owner)
+
+
+def take_approval(owner: str) -> bool:
+    with _ALOCK:
+        if owner in _APPROVED:
+            _APPROVED.discard(owner)
+            return True
+        return False
 
 
 _MANAGER: JobManager | None = None

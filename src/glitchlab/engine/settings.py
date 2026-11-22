@@ -86,6 +86,7 @@ class Settings:
         "window_geometry": "",
         "window_state_v2": "",
         "center_split": "",
+        "ai_device": "auto",
     }
 
     def __init__(self, path: Path | None = None):

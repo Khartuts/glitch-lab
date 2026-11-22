@@ -58,8 +58,10 @@ def variable_parameter_count(doc: Document) -> int:
             if not (inst.enabled and inst.vary):
                 continue
             eff = get_effect(inst.effect_id)
+            if eff.heavy:  # generative AI: every variation would mean a new, slow generation
+                continue
             n += sum(1 for p in eff.params if p.randomizable and p.name not in inst.locked_params
-                     and p.kind not in ("hex", "text", "file", "color"))
+                     and p.kind not in ("hex", "text", "file", "color", "points", "mask"))
             if eff.uses_seed and not inst.seed_locked:
                 n += 1
     return n
@@ -75,6 +77,8 @@ def make_variation(base: Document, settings: VariationSettings, index: int) -> D
             if not (inst.enabled and inst.vary):
                 continue
             eff = get_effect(inst.effect_id)
+            if eff.heavy:
+                continue
             for prm in eff.params:
                 if prm.name in inst.locked_params:
                     continue

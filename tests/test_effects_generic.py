@@ -9,7 +9,8 @@ from glitchlab.engine.pipeline import render_document, render_full
 
 from conftest import ffmpeg_available
 
-ALL_EFFECTS = sorted(REGISTRY)
+# Local-AI effects need PyTorch and model weights; they are covered by tests/test_ai*.py.
+ALL_EFFECTS = sorted(e for e in REGISTRY if not REGISTRY[e].ai_models)
 
 
 def _skip_if_needs_ffmpeg(eid):

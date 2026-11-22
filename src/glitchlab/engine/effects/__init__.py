@@ -16,6 +16,7 @@ from . import stylize  # noqa: F401
 from . import material  # noqa: F401
 from . import terminal  # noqa: F401
 from . import ai_vision  # noqa: F401
+from . import ai_generative  # noqa: F401
 from .base import CATEGORIES, REGISTRY, Effect, apply_effect, get_effect  # noqa: F401
 
 

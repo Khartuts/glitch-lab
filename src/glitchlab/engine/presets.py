@@ -364,6 +364,72 @@ BUILTIN_PRESETS: list[dict] = [
 ]
 
 
+# Version 1.3: presets built on the optional local-AI effects ("ai": True).  They
+# need the AI engine and model weights; generative ones wait for "Generate".
+AI_PRESETS: list[dict] = [
+    {"name": "Faultline Portrait", "ai": True,
+     "description": "The selected object comes loose from its outline in colour-separated bands (click the subject "
+                    "with 'Pick on image').",
+     "stack": [_fx("semantic_faultlines", 8001, width=56, bands=7, displacement=30, discontinuity=0.7,
+                   separation=7, strata=0.55, interior="slip", slip=36, background="dim", background_amount=0.35),
+               _fx("chromatic", 8002, strength=4.0, falloff=2.0, cx=0.5, cy=0.5, green=0.0, blur=0.5)]},
+    {"name": "Shattered Silhouette", "ai": True,
+     "description": "Shattered outline fragments over a desaturated world, the object filled with colour strata.",
+     "stack": [_fx("semantic_faultlines", 8101, width=80, bands=9, displacement=55, rotation=9.0,
+                   discontinuity=0.95, fragments=40, separation=10, strata=0.8, interior="strata",
+                   background="desaturate", background_amount=0.8, gap_fill="colour", gap_colour="#0b0b10")]},
+    {"name": "Depth Riot", "ai": True,
+     "description": "Inside-out perspective: background slabs punch through the foreground with mirrored gaps.",
+     "stack": [_fx("depth_mutiny", 8201, mode="inside_out", slabs=10, amplitude=48, direction=20.0, inversion=0.5,
+                   jitter=0.4, collision="inverted", gap_fill="mirror")]},
+    {"name": "Accordion Street", "ai": True,
+     "description": "Surfaces fold into ribbons along the depth, viewed on an old monitor.",
+     "stack": [_fx("depth_mutiny", 8301, mode="accordion", slabs=14, amplitude=44, direction=0.0, inversion=0.3,
+                   jitter=0.25, collision="correct", gap_fill="stretch"),
+               _fx("vhs_crt", 8302, chroma_blur=2, chroma_shift=1, saturation=1.05, sharpen=0.2, tracking=0.1,
+                   tracking_bands=1, noise=0.04, streaks=1, scanlines=0.25, scan_period=3, mask="none",
+                   mask_strength=0.0, bloom=0.3, vignette=0.35, curvature=0.0, border=False)]},
+    {"name": "Contagion Bloom", "ai": True,
+     "description": "Look-alike patches infect each other over three generations.",
+     "stack": [_fx("feature_contagion", 8401, mode="similar", patch=56, distance=0.3, similarity=0.02,
+                   density=0.18, generations=3, feather=0.4, colour_match=0.25)]},
+    {"name": "Dissimilar Invasion", "ai": True,
+     "description": "The least similar regions invade each other in hard-edged patches.",
+     "stack": [_fx("feature_contagion", 8501, mode="dissimilar", patch=48, distance=0.2, similarity=0.05,
+                   density=0.35, generations=1, feather=0.1, colour_match=0.0)]},
+    {"name": "Perception Static", "ai": True,
+     "description": "Where the model's views disagree, the image tears, splits and repeats.",
+     "stack": [_fx("perception_breakdown", 8601, perturbation=0.6, threshold=0.45, contrast=0.6, target="high",
+                   glitch="all", displacement=36, softness=0.3)]},
+    {"name": "Latent Rot", "ai": True,
+     "description": "Damaged VAE latents grow strange material transitions.",
+     "stack": [_fx("latent_bending", 8701, mutation="mixed", tile=4, channels="all", density=0.35, amplitude=0.6,
+                   composite="residual")]},
+    {"name": "Copper Scars", "ai": True,
+     "description": "Cracks reveal oxidised copper circuitry in porcelain (click Generate).",
+     "stack": [_fx("hallucination_scars", 8801, shape="cracks", density=0.45, width=14, branching=0.6,
+                   edge_style="burn", edge_width=2)]},
+    {"name": "Chrome Scanline Wounds", "ai": True,
+     "description": "Broken scanlines open onto black liquid chrome with luminous fibres (click Generate).",
+     "stack": [_fx("hallucination_scars", 8901, prompt="black liquid chrome with tangled luminous fibres",
+                   shape="scanlines", density=0.5, width=12, edge_style="glow", edge_width=2, bleed=0.25)]},
+    {"name": "Ceramic vs Metal", "ai": True,
+     "description": "Fragments of a frozen-ceramic and a molten-metal version haunt the photo (click Generate).",
+     "stack": [_fx("counterfactual_residue", 9001, prompt_a="frozen ceramic", prompt_b="molten organic metal",
+                   strength=0.55, threshold=0.35, mode="threshold", fragment=48)]},
+    {"name": "Fading Memory", "ai": True,
+     "description": "Four low-strength rememberings combined through contour bands (click Generate).",
+     "stack": [_fx("recursive_misremembering", 9101, generations=4, strength=0.3, anchor=0.15,
+                   combine="contour", memory="accumulated")]},
+]
+BUILTIN_PRESETS.extend(AI_PRESETS)
+
+
+def is_ai_preset(preset: dict) -> bool:
+    return bool(preset.get("ai")) or any(getattr(REGISTRY.get(fx.get("effect")), "ai_models", ())
+                                         for fx in preset.get("stack", []))
+
+
 def available_builtin_presets() -> list[dict]:
     """Built-in presets whose effects are all registered."""
     return [p for p in BUILTIN_PRESETS if all(fx["effect"] in REGISTRY for fx in p["stack"])]

@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QPlainTextEdit,
     QPushButton,
     QSlider,
     QSpinBox,
@@ -23,14 +24,17 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..engine.params import BITS, BOOL, CHOICE, COLOR, FILE, FLOAT, HEX, INT, TEXT, Param, parse_hex_bytes
-from .widgets import shrinkable_combo
+from ..engine.params import (BITS, BOOL, CHOICE, COLOR, FILE, FLOAT, HEX, INT, MASK, POINTS, TEXT, Param,
+                             parse_hex_bytes)
+from .widgets import FlowLayout, shrinkable_combo
 
 
 class _Editor(QWidget):
     """Base editor: emits ``value_changed(value, final)``."""
 
     value_changed = Signal(object, bool)
+    #: Requests for the preview canvas (object picking, mask painting): a dict with an "action".
+    canvas_request = Signal(object)
 
     def __init__(self, param: Param, parent=None):
         super().__init__(parent)
@@ -331,8 +335,177 @@ class BitsEditor(_Editor):
         self._block = False
 
 
+class LongTextEditor(_Editor):
+    """Multi-line text (prompts). Applied when focus leaves or with Ctrl+Enter."""
+
+    def __init__(self, param: Param, parent=None):
+        super().__init__(param, parent)
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(0, 0, 0, 0)
+        lay.setSpacing(2)
+        self.edit = QPlainTextEdit()
+        self.edit.setToolTip((param.tooltip + "\n" if param.tooltip else "") + "Ctrl+Enter applies the text.")
+        self.edit.setTabChangesFocus(True)
+        fm = self.edit.fontMetrics()
+        self.edit.setFixedHeight(int(fm.lineSpacing() * 3.6 + 12))
+        self.edit.setMinimumWidth(40)
+        lay.addWidget(self.edit)
+        self._last = ""
+        self.edit.installEventFilter(self)
+
+    def eventFilter(self, obj, ev):  # noqa: N802
+        from PySide6.QtCore import QEvent  # noqa: PLC0415
+
+        if obj is self.edit:
+            if ev.type() == QEvent.FocusOut:
+                self._apply()
+            elif ev.type() == QEvent.KeyPress and ev.key() in (Qt.Key_Return, Qt.Key_Enter) and \
+                    ev.modifiers() & Qt.ControlModifier:
+                self._apply()
+                return True
+        return super().eventFilter(obj, ev)
+
+    def _apply(self) -> None:
+        text = self.edit.toPlainText()
+        if text != self._last:
+            self._last = text
+            self._emit(text, True)
+
+    def set_value(self, v) -> None:
+        self._block = True
+        self._last = str(v or "")
+        if self.edit.toPlainText() != self._last:
+            self.edit.setPlainText(self._last)
+        self._block = False
+
+
+class PointsEditor(_Editor):
+    """Object selection: points clicked on the preview (left = object, right = exclude)."""
+
+    def __init__(self, param: Param, parent=None):
+        super().__init__(param, parent)
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(0, 0, 0, 0)
+        lay.setSpacing(3)
+        self.summary = QLabel("")
+        self.summary.setObjectName("muted")
+        self.summary.setWordWrap(True)
+        row_w = QWidget()
+        row = FlowLayout(row_w, hspacing=4, vspacing=3)
+        self.pick = QPushButton("Pick on image")
+        self.pick.setCheckable(True)
+        self.pick.setToolTip("Click objects in the preview: left click = part of the object, right click = "
+                             "exclude. Press again (or Esc) to finish.")
+        new = QToolButton()
+        new.setText("New object")
+        new.setToolTip("The next points start another object.")
+        undo = QToolButton()
+        undo.setText("↶")
+        undo.setToolTip("Remove the last point")
+        clr = QToolButton()
+        clr.setText("✕")
+        clr.setToolTip("Remove all points")
+        for w in (self.pick, new, undo, clr):
+            row.addWidget(w)
+        lay.addWidget(self.summary)
+        lay.addWidget(row_w)
+        self._pts: list = []
+        self.pick.toggled.connect(lambda on: self.canvas_request.emit({"action": "points", "on": bool(on)}))
+        new.clicked.connect(lambda: self.canvas_request.emit({"action": "new_object"}))
+        undo.clicked.connect(lambda: self._emit(self._pts[:-1], True) if self._pts else None)
+        clr.clicked.connect(lambda: self._emit([], True))
+
+    def set_picking(self, on: bool) -> None:
+        self.pick.blockSignals(True)
+        self.pick.setChecked(on)
+        self.pick.blockSignals(False)
+
+    def set_value(self, v) -> None:
+        self._pts = list(v or [])
+        objs = {int(p[3]) for p in self._pts if len(p) > 3}
+        if not self._pts:
+            self.summary.setText("No object selected yet.")
+        else:
+            inc = sum(1 for p in self._pts if p[2])
+            self.summary.setText(f"{len(objs)} object(s): {inc} point(s) on objects, {len(self._pts) - inc} excluded.")
+
+
+class MaskParamEditor(_Editor):
+    """An effect's own mask, painted on the preview with the mask tools."""
+
+    def __init__(self, param: Param, parent=None):
+        super().__init__(param, parent)
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(0, 0, 0, 0)
+        lay.setSpacing(3)
+        self.summary = QLabel("")
+        self.summary.setObjectName("muted")
+        self.summary.setWordWrap(True)
+        row_w = QWidget()
+        row = FlowLayout(row_w, hspacing=4, vspacing=3)
+        self.buttons = {}
+        for tool, text, tip in (("brush", "Paint", "Paint the region on the preview"),
+                                ("rect", "▭", "Draw rectangles"), ("erase", "Erase", "Erase from the region")):
+            b = QToolButton()
+            b.setText(text)
+            b.setCheckable(True)
+            b.setToolTip(tip)
+            b.toggled.connect(lambda on, t=tool: self._tool(t, on))
+            self.buttons[tool] = b
+            row.addWidget(b)
+        self.invert = QCheckBox("Invert")
+        clr = QToolButton()
+        clr.setText("✕")
+        clr.setToolTip("Clear the region (whole image)")
+        row.addWidget(self.invert)
+        row.addWidget(clr)
+        lay.addWidget(self.summary)
+        lay.addWidget(row_w)
+        self._value: dict = {}
+        self.invert.toggled.connect(self._invert)
+        clr.clicked.connect(lambda: self._emit({}, True))
+
+    def _tool(self, tool: str, on: bool) -> None:
+        if on:
+            for t, b in self.buttons.items():
+                if t != tool:
+                    b.blockSignals(True)
+                    b.setChecked(False)
+                    b.blockSignals(False)
+        self.canvas_request.emit({"action": "mask", "tool": tool if on else None})
+
+    def set_tool(self, tool: str | None) -> None:
+        for t, b in self.buttons.items():
+            b.blockSignals(True)
+            b.setChecked(t == tool)
+            b.blockSignals(False)
+
+    def _invert(self, on: bool) -> None:
+        v = dict(self._value or {})
+        v["invert"] = bool(on)
+        v["enabled"] = True
+        self._emit(v, True)
+
+    def set_value(self, v) -> None:
+        self._value = dict(v or {})
+        n = len(self._value.get("shapes", []))
+        self.invert.blockSignals(True)
+        self.invert.setChecked(bool(self._value.get("invert")))
+        self.invert.blockSignals(False)
+        if not n and not self._value.get("invert"):
+            self.summary.setText("Not set: the whole image.")
+        else:
+            self.summary.setText(f"{n} shape(s)" + (", inverted" if self._value.get("invert") else "") + ".")
+
+
 def make_editor(param: Param, parent=None) -> _Editor:
     k = param.kind
+    if k == TEXT and "long" in param.flags:
+        return LongTextEditor(param, parent)
+    if k == POINTS:
+        return PointsEditor(param, parent)
+    if k == MASK:
+        return MaskParamEditor(param, parent)
     if k in (FLOAT, INT):
         return NumberEditor(param, parent)
     if k == CHOICE:

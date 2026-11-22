@@ -34,6 +34,8 @@ class EffectFailure:
     uid: str
     name: str
     message: str
+    #: Exception class name (e.g. "ModelMissing", "AIUnavailable", "GenerationPending").
+    code: str = ""
 
 
 @dataclass
@@ -219,14 +221,15 @@ def render_stack(
         try:
             out = apply_effect(img, inst, global_seed=global_seed, scale=scale, full_size=full_size,
                                cancel=cancel, services=services, warnings=warnings, progress_cb=sub_progress,
-                               input_key=input_keys[i], full_input=full_input_of(i, img))
+                               input_key=input_keys[i], full_input=full_input_of(i, img),
+                               interactive=(on_error == "skip"))
         except Cancelled:
             raise
         except (EffectError, DependencyError) as exc:
             log.warning("Effect %s failed: %s %s", name, exc.message, exc.detail)
             if on_error == "raise":
                 raise
-            failures.append(EffectFailure(inst.uid, name, exc.message))
+            failures.append(EffectFailure(inst.uid, name, exc.message, type(exc).__name__))
             continue
         except MemoryError as exc:
             msg = "Not enough memory for this effect at the current resolution."

@@ -56,7 +56,7 @@ def cached_analysis(ctx: EffectContext, img: np.ndarray, name: str, settings: di
     changes.  The model revisions are part of the key.
     """
     ensure_ready(*model_ids)
-    key = make_key(name, input_identity(ctx, img), settings, [models.revision(m) for m in model_ids], extra_key)
+    key = analysis_key(ctx, img, name, settings, model_ids, extra_key)
     mgr = manager()
     hit = mgr.cached(key, persist)
     if hit is not None:
@@ -65,6 +65,10 @@ def cached_analysis(ctx: EffectContext, img: np.ndarray, name: str, settings: di
     full = np.ascontiguousarray(full)
     return mgr.run(key, label or ctx.effect_label or name, lambda job: fn(full, job), owner=ctx.owner,
                    persist=persist, cancel=ctx.cancel, progress=ctx.progress)
+
+
+def analysis_key(ctx: EffectContext, img: np.ndarray, name: str, settings: dict, model_ids=(), extra_key=None) -> str:
+    return make_key(name, input_identity(ctx, img), settings, [models.revision(m) for m in model_ids], extra_key)
 
 
 # ------------------------------------------------------------------ images
@@ -119,7 +123,7 @@ def normalised_tensor(rgb: np.ndarray, mid: str):
 # ------------------------------------------------------------------ loaders
 def _dtype_kw(lib: str) -> dict:
     torch = runtime.import_torch()
-    return {"dtype": torch.float32} if lib == "transformers" else {"torch_dtype": torch.float32}
+    return {"dtype": torch.float32}
 
 
 def load_sam2():

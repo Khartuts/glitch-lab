@@ -5,6 +5,7 @@ from __future__ import annotations
 from html import escape
 
 from PySide6.QtWidgets import (
+    QComboBox,
     QDialog,
     QDialogButtonBox,
     QFileDialog,
@@ -78,6 +79,15 @@ class PreferencesDialog(QDialog):
         self.cache_mb.setValue(int(settings.get("cache_megabytes")))
         self.cache_mb.setToolTip("Memory for cached intermediate results (speeds up editing late in the stack).")
         form.addRow("Render cache", self.cache_mb)
+        self.ai_device = QComboBox()
+        for key, text in (("auto", "Automatic (NVIDIA graphics card if usable, else processor)"),
+                          ("cpu", "Processor (CPU)"), ("cuda", "NVIDIA graphics card (CUDA)")):
+            self.ai_device.addItem(text, key)
+        idx = self.ai_device.findData(settings.get("ai_device") or "auto")
+        self.ai_device.setCurrentIndex(max(0, idx))
+        self.ai_device.setToolTip("Where the local AI effects run. The downloadable AI engine uses the processor; "
+                                  "AMD Radeon graphics cards are not accelerated on Windows.")
+        form.addRow("AI effects run on", self.ai_device)
         lay.addLayout(form)
         bb = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         bb.accepted.connect(self._ok)
@@ -98,4 +108,5 @@ class PreferencesDialog(QDialog):
         self.settings.set("ffmpeg_path", self.ffmpeg.text().strip())
         self.settings.set("max_import_megapixels", self.max_mp.value())
         self.settings.set("cache_megabytes", self.cache_mb.value())
+        self.settings.set("ai_device", self.ai_device.currentData())
         self.accept()

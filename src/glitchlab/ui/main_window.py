@@ -7,7 +7,7 @@ import os
 import time
 
 import numpy as np
-from PySide6.QtCore import QByteArray, Qt, QTimer
+from PySide6.QtCore import QByteArray, QObject, Qt, QTimer, Signal
 from PySide6.QtGui import QAction, QIcon, QKeySequence, QPixmap
 from PySide6.QtWidgets import (
     QApplication,
@@ -62,7 +62,7 @@ from ..engine.presets import (
 from ..engine.services import EngineServices
 from ..engine.settings import Settings
 from . import theme
-from .canvas import TOOL_BRUSH, TOOL_ERASE, TOOL_PAN, TOOL_RECT, PreviewCanvas
+from .canvas import TOOL_BRUSH, TOOL_ERASE, TOOL_PAN, TOOL_POINTS, TOOL_RECT, PreviewCanvas
 from .effect_panel import EffectPanel
 from .export_dialog import ExportDialog, ask_conflict
 from .layers_panel import LayersPanel
@@ -76,6 +76,12 @@ log = logging.getLogger(__name__)
 
 PREVIEW_SIZES = ((512, "512 px"), (768, "768 px"), (1024, "1024 px"), (1536, "1536 px"), (2048, "2048 px"),
                  (0, "Full resolution"))
+
+
+class _AIBridge(QObject):
+    """Carries AI job events from the AI worker thread to the UI thread."""
+
+    event = Signal(str, str, float, str)
 
 
 class MainWindow(QMainWindow):
@@ -94,6 +100,10 @@ class MainWindow(QMainWindow):
         self.source_key = ""
         self.selected_uid = ""
         self.failures: dict[str, str] = {}
+        #: (effect uid, parameter name, "points" | "mask") edited on the canvas, or None (layer mask)
+        self.param_target: tuple[str, str, str] | None = None
+        self._pick_object = 1
+        self._ai_prompted: set[str] = set()
         self.full_result: tuple[str, np.ndarray] | None = None
         self.showing_full = False
         self.last_result: np.ndarray | None = None
@@ -141,6 +151,8 @@ class MainWindow(QMainWindow):
         self.canvas = PreviewCanvas()
         self.canvas.files_dropped.connect(lambda paths: self.import_image(paths[0]))
         self.canvas.rect_drawn.connect(self.add_mask_shape)
+        self.canvas.point_clicked.connect(self.on_point_clicked)
+        self.canvas.escape_pressed.connect(self.end_canvas_target)
         self.canvas.stroke_drawn.connect(self.add_mask_shape)
         # The preview and the variations / render-status panel share one vertical
         # splitter, so the panel is always exactly as wide as the preview and
@@ -191,6 +203,9 @@ class MainWindow(QMainWindow):
         self.effect_panel.duplicate_requested.connect(lambda uid: self.stack_action("duplicate", uid))
         self.effect_panel.remove_requested.connect(lambda uid: self.stack_action("remove", uid))
         self.effect_panel.randomize_requested.connect(self.randomize_effect_seed)
+        self.effect_panel.canvas_requested.connect(self.on_canvas_request)
+        self.effect_panel.generate_requested.connect(self.generate_ai)
+        self.effect_panel.models_requested.connect(self.download_ai_models)
         right.addWidget(self.effect_panel)
         right.setSizes([260, 600])
         self.right_tabs = QTabWidget()
@@ -237,6 +252,34 @@ class MainWindow(QMainWindow):
         sl.addWidget(self.progress)
         sl.addWidget(self.cancel_btn)
         bl.addWidget(strip)
+        # AI jobs (inference / generation) run on their own worker; show them in a second strip.
+        self.ai_strip = QFrame()
+        self.ai_strip.setObjectName("statusStrip")
+        al = QHBoxLayout(self.ai_strip)
+        al.setContentsMargins(8, 2, 8, 2)
+        al.addWidget(QLabel("AI"))
+        self.ai_label = ElidedLabel("")
+        al.addWidget(self.ai_label, 1)
+        self.ai_progress = QProgressBar()
+        self.ai_progress.setRange(0, 1000)
+        self.ai_progress.setMaximumWidth(220)
+        self.ai_progress.setTextVisible(False)
+        al.addWidget(self.ai_progress)
+        self.ai_cancel = QPushButton("Cancel AI")
+        self.ai_cancel.setToolTip("Stop the running AI inference or generation (finished generations are kept)")
+        self.ai_cancel.clicked.connect(self.cancel_ai)
+        al.addWidget(self.ai_cancel)
+        self.ai_strip.hide()
+        bl.addWidget(self.ai_strip)
+        self._ai_bridge = _AIBridge()
+        self._ai_bridge.event.connect(self._on_ai_event)
+        from ..ai import runtime as ai_runtime  # noqa: PLC0415
+        from ..ai import support as ai_support  # noqa: PLC0415
+        from ..ai.jobs import manager as ai_manager  # noqa: PLC0415
+
+        ai_runtime.activate()
+        ai_support.DEVICE_PREFERENCE = self.settings.get("ai_device") or "auto"
+        ai_manager().add_listener(self._ai_listener)
         self.bottom_tabs = QTabWidget()
         self.variations = VariationsPanel()
         self.variations.generate_requested.connect(self.generate_variations)
@@ -460,6 +503,15 @@ class MainWindow(QMainWindow):
         self.m_render.addAction("Add current recipe to favourites", self.add_current_to_favourites, "Ctrl+B")
         self.m_render.addSeparator()
         self.m_render.addAction("Verify project render", self.verify_project)
+        m = mb.addMenu("&AI")
+        m.addAction("Install AI engine…", self.install_ai_engine)
+        m.addAction("Models…", self.show_ai_models)
+        m.addSeparator()
+        m.addAction("Generate selected AI effect", lambda: self.generate_ai(self.selected_uid))
+        m.addAction("Cancel AI work", self.cancel_ai)
+        m.addAction("Unload models from memory", self.unload_ai_models)
+        m.addSeparator()
+        m.addAction("Save intermediate generations…", self.save_ai_generations)
         self.m_help = mb.addMenu("&Help")
         self.m_help.addAction("User guide", self._open_user_guide)
         self.m_help.addAction("Keyboard shortcuts", self.show_shortcuts)
@@ -687,9 +739,12 @@ class MainWindow(QMainWindow):
         self._preview_started = time.perf_counter()
         self._render_busy("Rendering preview…")
 
+        full_src = self.image.rgba
+
         def work(token, progress):
             return render_document(src, doc, scale=scale, full_size=full_size, services=services, cancel=token,
-                                   cache=cache, cache_prefix=prefix, on_error="skip", progress=progress)
+                                   cache=cache, cache_prefix=prefix, on_error="skip", progress=progress,
+                                   full_source=full_src)
 
         self.runner.submit("preview", work, on_done=self._preview_done, on_error=self._preview_error,
                            on_progress=self._on_progress, on_cancel=lambda: self._render_idle("Preview cancelled", "warning"))
@@ -715,6 +770,8 @@ class MainWindow(QMainWindow):
             self.canvas.set_busy(f"Rendering · {msg}")
 
     def _apply_failures(self, failures) -> None:
+        if any(f.code in ("ModelMissing", "AIUnavailable") for f in failures):
+            QTimer.singleShot(0, lambda fl=list(failures): self._maybe_offer_ai(fl))
         new = {f.uid: f.message for f in failures}
         if new != self.failures:
             self.failures = new
@@ -873,6 +930,7 @@ class MainWindow(QMainWindow):
     def select_effect(self, uid: str) -> None:
         if uid == self.selected_uid:
             return
+        self.end_canvas_target()
         self.selected_uid = uid
         self.history.break_coalescing()
         self.refresh_effect_panel()
@@ -1065,11 +1123,187 @@ class MainWindow(QMainWindow):
         self.canvas.set_checkerboard(on)
         self.settings.set("show_checkerboard", bool(on))
 
+    # ================================================================== AI
+    def on_canvas_request(self, uid: str, name: str, req: dict) -> None:
+        inst = self.find(uid)
+        if inst is None or self.image is None:
+            return
+        action = req.get("action")
+        if action == "points":
+            if req.get("on"):
+                self.param_target = (uid, name, "points")
+                pts = inst.params.get(name) or []
+                self._pick_object = max([int(p[3]) for p in pts] or [1])
+                self.set_tool(TOOL_POINTS, for_effect=True)
+                self.canvas.set_points(pts)
+                self.set_status("Click the object in the preview (right-click = exclude). Esc finishes.")
+            else:
+                self.end_canvas_target()
+        elif action == "new_object":
+            pts = inst.params.get(name) or []
+            self._pick_object = max([int(p[3]) for p in pts] or [0]) + 1
+            if self.param_target is None or self.param_target[:2] != (uid, name):
+                self.on_canvas_request(uid, name, {"action": "points", "on": True})
+                ed = self.effect_panel.editor(name)
+                if ed is not None and hasattr(ed, "set_picking"):
+                    ed.set_picking(True)
+            self.set_status(f"Picking object {self._pick_object}: click it in the preview.")
+        elif action == "mask":
+            tool = req.get("tool")
+            if not tool:
+                self.end_canvas_target()
+                return
+            self.param_target = (uid, name, "mask")
+            self.set_tool({"brush": TOOL_BRUSH, "rect": TOOL_RECT, "erase": TOOL_ERASE}[tool], for_effect=True)
+            self.set_status(f"Painting the '{get_effect(inst.effect_id).param(name).label}' of "
+                            f"{inst.display_name()}. Esc finishes.")
+
+    def end_canvas_target(self, set_pan: bool = True) -> None:
+        if self.param_target is None:
+            return
+        uid, name, kind = self.param_target
+        self.param_target = None
+        self.canvas.set_points(None)
+        ed = self.effect_panel.editor(name) if self.effect_panel.current_uid() == uid else None
+        if ed is not None:
+            if kind == "points" and hasattr(ed, "set_picking"):
+                ed.set_picking(False)
+            if kind == "mask" and hasattr(ed, "set_tool"):
+                ed.set_tool(None)
+        if set_pan:
+            self.canvas.set_tool(TOOL_PAN)
+            self.layers_panel.set_tool(TOOL_PAN)
+        self.update_mask_overlay()
+
+    def on_point_clicked(self, x: float, y: float, label: int) -> None:
+        if self.param_target is None or self.param_target[2] != "points":
+            return
+        uid, name, _ = self.param_target
+        inst = self.find(uid)
+        if inst is None:
+            return
+        pts = list(inst.params.get(name) or []) + [[x, y, int(label), self._pick_object]]
+        self.on_param_changed(uid, name, pts, True)
+        self.effect_panel.set_param_value(name, inst.params[name])
+        self.canvas.set_points(inst.params[name])
+
+    def install_ai_engine(self) -> None:
+        from .ai_dialogs import install_engine  # noqa: PLC0415
+
+        if install_engine(self):
+            self.refresh_effect_panel()
+            self.schedule_preview()
+
+    def show_ai_models(self) -> None:
+        from .ai_dialogs import ModelsDialog  # noqa: PLC0415
+
+        ModelsDialog(self).exec()
+        self.refresh_effect_panel()
+        self.schedule_preview()
+
+    def download_ai_models(self, ids) -> None:
+        from ..ai import runtime  # noqa: PLC0415
+        from .ai_dialogs import download_models, install_engine  # noqa: PLC0415
+
+        if not runtime.engine_available() and not install_engine(self):
+            return
+        if download_models(self, list(ids)):
+            self.refresh_effect_panel()
+            self.schedule_preview()
+
+    def generate_ai(self, uid: str) -> None:
+        inst = self.find(uid) if uid else None
+        if inst is None or not get_effect(inst.effect_id).heavy:
+            self.set_status("Select a generative AI effect first.", "warning")
+            return
+        from ..ai.jobs import approve  # noqa: PLC0415
+
+        approve(uid)
+        self.failures.pop(uid, None)
+        self.effect_panel.set_status("")
+        self.set_status(f"Generating {inst.display_name()}… (progress in the AI bar below)")
+        self.schedule_preview()
+
+    def cancel_ai(self) -> None:
+        from ..ai.jobs import manager  # noqa: PLC0415
+
+        n = manager().cancel_all()
+        self.set_status(f"Cancelled {n} AI job(s). Finished generations are kept.", "warning")
+
+    def unload_ai_models(self) -> None:
+        from ..ai import models as ai_models  # noqa: PLC0415
+
+        n = ai_models.unload()
+        self.set_status(f"Unloaded {n} AI model(s) from memory.")
+
+    def save_ai_generations(self) -> None:
+        inst = self.find(self.selected_uid) if self.selected_uid else None
+        from ..ai.generate import last_generations  # noqa: PLC0415
+        from ..engine.image_io import save_png_bytes  # noqa: PLC0415
+
+        gens = last_generations(inst.uid) if inst else []
+        if not gens:
+            QMessageBox.information(self, "Intermediate generations", "Select a Recursive Misremembering effect "
+                                    "that has been generated in this session.")
+            return
+        folder = QFileDialog.getExistingDirectory(self, "Save intermediate generations",
+                                                  self.settings.get("export_folder") or os.path.expanduser("~"))
+        if not folder:
+            return
+        for i, g in enumerate(gens, start=1):
+            rgba = np.dstack([g, np.full(g.shape[:2], 255, np.uint8)])
+            with open(os.path.join(folder, f"generation_{i:02d}.png"), "wb") as fh:
+                fh.write(save_png_bytes(rgba))
+        self.set_status(f"Saved {len(gens)} generation(s) to {folder}", "ok")
+
+    def _ai_listener(self, event: str, job) -> None:
+        self._ai_bridge.event.emit(event, job.label, job.fraction, job.message)
+
+    def _on_ai_event(self, event: str, label: str, fraction: float, message: str) -> None:
+        from ..ai.jobs import manager  # noqa: PLC0415
+
+        if event in ("queued", "start", "progress"):
+            self.ai_strip.show()
+            self.ai_label.setText(f"{label} — {message}" if message else label)
+            self.ai_progress.setValue(int(fraction * 1000))
+        else:
+            if not manager().busy():
+                self.ai_strip.hide()
+            if event == "error":
+                self.set_status(f"{label} failed — see the effect for details.", "error")
+
+    def _maybe_offer_ai(self, failures) -> None:
+        for f in failures:
+            if f.code not in ("ModelMissing", "AIUnavailable"):
+                continue
+            inst = self.find(f.uid)
+            if inst is None:
+                continue
+            eff = get_effect(inst.effect_id)
+            key = f"{f.code}:{','.join(eff.ai_models)}"
+            if key in self._ai_prompted:
+                continue
+            self._ai_prompted.add(key)
+            # non-blocking: the preview keeps running while the question is open
+            box = QMessageBox(QMessageBox.Question, eff.name, f.message + "\n\nDownload now?",
+                              QMessageBox.Yes | QMessageBox.No, self)
+            box.setAttribute(Qt.WA_DeleteOnClose)
+            box.setWindowModality(Qt.NonModal)
+            ids = list(eff.ai_models)
+            box.button(QMessageBox.Yes).clicked.connect(lambda ids=ids: QTimer.singleShot(
+                0, lambda: self.download_ai_models(ids)))
+            box.show()
+            self._ai_offer_box = box
+            break
+
     def preferences(self) -> None:
         from .dialogs import PreferencesDialog
 
         dlg = PreferencesDialog(self, self.settings, self.services)
         if dlg.exec():
+            from ..ai import support as ai_support  # noqa: PLC0415
+
+            ai_support.DEVICE_PREFERENCE = self.settings.get("ai_device") or "auto"
             self.services.set_ffmpeg_path(self.settings.get("ffmpeg_path") or None)
             self.cache.max_bytes = int(self.settings.get("cache_megabytes")) * 1024 * 1024
             self.schedule_preview()
@@ -1155,6 +1389,10 @@ class MainWindow(QMainWindow):
             return
         self.runner.shutdown()
         self.browser.shutdown()
+        from ..ai.jobs import manager as ai_manager  # noqa: PLC0415
+
+        ai_manager().remove_listener(self._ai_listener)
+        ai_manager().cancel_all()
         try:
             self.settings.data["window_geometry"] = bytes(self.saveGeometry().toBase64()).decode()
             self.settings.data["window_state_v2"] = bytes(self.saveState().toBase64()).decode()
@@ -1251,12 +1489,14 @@ class MainWindow(QMainWindow):
             self.commit("Alpha output", rebuild_stack=False)
 
     # ================================================================= masks
-    def set_tool(self, tool: str) -> None:
+    def set_tool(self, tool: str, *, for_effect: bool = False) -> None:
+        if not for_effect and self.param_target is not None:
+            self.end_canvas_target(set_pan=False)
         self.canvas.set_tool(tool)
         self.layers_panel.set_tool(tool)
-        if tool != TOOL_PAN:
+        if tool != TOOL_PAN and not for_effect:
             self.right_tabs.setCurrentWidget(self.layers_panel)
-            self.update_mask_overlay()
+        self.update_mask_overlay()
 
     def _brush_changed(self, v: float) -> None:
         self.canvas.brush_radius = float(v)
@@ -1272,9 +1512,20 @@ class MainWindow(QMainWindow):
         self.canvas.set_show_mask(on)
 
     def add_mask_shape(self, shape: dict) -> None:
-        mask = self.doc.layer.mask
         if shape.get("type") == "stroke" and len(shape.get("points", [])) == 0:
             return
+        if self.param_target is not None and self.param_target[2] == "mask":
+            uid, name, _ = self.param_target
+            inst = self.find(uid)
+            if inst is not None:
+                value = dict(inst.params.get(name) or {})
+                value["shapes"] = list(value.get("shapes", [])) + [shape]
+                value["enabled"] = True
+                self.on_param_changed(uid, name, value, True)
+                self.effect_panel.set_param_value(name, inst.params[name])
+                self.update_mask_overlay()
+            return
+        mask = self.doc.layer.mask
         mask.shapes.append(shape)
         mask.enabled = True
         kind = "rectangle" if shape["type"] == "rect" else ("eraser stroke" if shape["mode"] == "subtract" else "brush stroke")
@@ -1304,6 +1555,16 @@ class MainWindow(QMainWindow):
     def update_mask_overlay(self) -> None:
         if self.preview_src is None:
             self.canvas.set_mask_overlay(None)
+            return
+        if self.param_target is not None and self.param_target[2] == "mask":
+            inst = self.find(self.param_target[0])
+            from ..engine.model import MaskSpec  # noqa: PLC0415
+
+            spec = MaskSpec.from_dict(inst.params.get(self.param_target[1]) if inst else {})
+            h, w = self.preview_src.shape[:2]
+            m = None if spec.is_identity() else rasterize_mask(spec, w, h, self.preview_src)
+            self.canvas.set_mask_overlay(None if m is None else QPixmap.fromImage(mask_overlay_qimage(m)))
+            self.canvas.set_show_mask(True)
             return
         mask = self.doc.layer.mask
         if mask.is_identity():
@@ -1346,10 +1607,11 @@ class MainWindow(QMainWindow):
         src, scale = self._var_src, self._var_scale
         full = (self.image.width, self.image.height)
         services = self.services
+        full_src = self.image.rgba
 
         def work(token, progress):
             return render_document(src, doc, scale=scale, full_size=full, services=services, cancel=token,
-                                   on_error="skip")
+                                   on_error="skip", full_source=full_src)
 
         def done(res, _i=i):
             self._var_thumbs[_i] = res.image
@@ -1557,6 +1819,9 @@ class MainWindow(QMainWindow):
         self.schedule_preview()
         self.settings.add_recent("recent_projects", os.path.abspath(path))
         self.set_status(f"Opened project {os.path.basename(path)} ({proj.source.width}×{proj.source.height})", "ok")
+        notes = proj.model_revision_notes()
+        if notes:
+            self.set_status(" ".join(notes), "warning")
         if proj.render_sha256:
             log.info("Project records full-render hash %s… (Render > Verify project to check)", proj.render_sha256[:12])
         self._project_hash = proj.render_sha256
