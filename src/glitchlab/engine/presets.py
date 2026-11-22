@@ -364,6 +364,34 @@ BUILTIN_PRESETS: list[dict] = [
 ]
 
 
+# Version 1.4: Acid Flow recipes.
+ACID_PRESETS: list[dict] = [
+    {"name": "Liquid Acid", "description": "Intense swirling colour ribbons: the image melts into neon liquid.",
+     "stack": [_fx("acid_flow", 9201, mode="liquid_acid", strength=0.075, turbulence=0.8, turbulence_scale=0.25,
+                   vortex_count=4, vortex_size=0.16, vortex_rotation=1.0, viscosity=0.35, steps=24, detail=0.8,
+                   fine=0.4, corrosion=0.2, highlights=0.4, colour_mode="neon", palette="acid", ribbons=0.65,
+                   ribbon_count=12, chroma=0.008, iridescence=0.45, saturation=1.25)]},
+    {"name": "Mercury Skin", "description": "Restrained liquid chrome flowing along the subject's contours.",
+     "stack": [_fx("acid_flow", 9301, mode="contour", strength=0.045, contour=0.9, turbulence=0.35,
+                   viscosity=0.7, steps=16, detail=0.5, fine=0.15, chrome=0.55, corrosion=0.0, highlights=0.7,
+                   colour_mode="original", ribbons=0.0, chroma=0.002, iridescence=0.1, saturation=0.55)]},
+    {"name": "Toxic Ink", "description": "Dark pools that melt downwards with fluorescent veins.",
+     "stack": [_fx("acid_flow", 9401, mode="melt", strength=0.1, melt_threshold=0.45, gravity=0.3,
+                   turbulence=0.5, viscosity=0.45, steps=20, detail=0.4, fine=0.35, corrosion=0.75, highlights=0.3,
+                   colour_mode="neon", palette="toxic", ribbons=0.55, ribbon_count=8, chroma=0.004,
+                   iridescence=0.15, saturation=1.2)]},
+    {"name": "Slow Dissolve", "description": "Viscous melting that keeps the subject recognisable.",
+     "stack": [_fx("acid_flow", 9501, mode="melt", strength=0.05, melt_threshold=0.6, gravity=0.4,
+                   turbulence=0.25, turbulence_scale=0.35, viscosity=0.85, steps=24, detail=0.7, fine=0.1,
+                   corrosion=0.15, highlights=0.2, colour_mode="original", ribbons=0.1, chroma=0.003,
+                   iridescence=0.05, saturation=1.0)]},
+    {"name": "Oil Spill", "description": "Subtle oily iridescence drifting along the contours.",
+     "stack": [_fx("acid_flow", 9601, mode="contour", strength=0.035, contour=0.8, turbulence=0.3,
+                   viscosity=0.6, steps=14, detail=0.55, fine=0.2, chrome=0.0, corrosion=0.0, highlights=0.25,
+                   colour_mode="original", ribbons=0.0, chroma=0.003, iridescence=0.6, saturation=1.05)]},
+]
+BUILTIN_PRESETS.extend(ACID_PRESETS)
+
 # Version 1.3: presets built on the optional local-AI effects ("ai": True).  They
 # need the AI engine and model weights; generative ones wait for "Generate".
 AI_PRESETS: list[dict] = [

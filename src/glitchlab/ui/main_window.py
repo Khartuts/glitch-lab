@@ -152,6 +152,7 @@ class MainWindow(QMainWindow):
         self.canvas.files_dropped.connect(lambda paths: self.import_image(paths[0]))
         self.canvas.rect_drawn.connect(self.add_mask_shape)
         self.canvas.point_clicked.connect(self.on_point_clicked)
+        self.canvas.point_moved.connect(self.on_point_moved)
         self.canvas.escape_pressed.connect(self.end_canvas_target)
         self.canvas.stroke_drawn.connect(self.add_mask_shape)
         # The preview and the variations / render-status panel share one vertical
@@ -998,6 +999,10 @@ class MainWindow(QMainWindow):
             return
         eff = get_effect(inst.effect_id)
         inst.params[name] = eff.param(name).coerce(value)
+        if name == "freeze" and hasattr(eff, "snapshot"):
+            # Freezing stores the current flow state; unfreezing forgets it.
+            inst.params["frozen"] = eff.snapshot(eff.coerce_params(inst.params), inst.seed, self.doc.global_seed) \
+                if value else {}
         self.commit(f"{eff.param(name).label}", coalesce=f"{uid}:{name}", rebuild_stack=False)
 
     def on_field_changed(self, uid: str, field: str, value, final: bool) -> None:
@@ -1194,6 +1199,20 @@ class MainWindow(QMainWindow):
         self.on_param_changed(uid, name, pts, True)
         self.effect_panel.set_param_value(name, inst.params[name])
         self.canvas.set_points(inst.params[name])
+
+    def on_point_moved(self, index: int, x: float, y: float) -> None:
+        if self.param_target is None or self.param_target[2] != "points":
+            return
+        uid, name, _ = self.param_target
+        inst = self.find(uid)
+        if inst is None:
+            return
+        pts = [list(p) for p in (inst.params.get(name) or [])]
+        if 0 <= index < len(pts):
+            pts[index][0], pts[index][1] = x, y
+            self.on_param_changed(uid, name, pts, True)
+            self.effect_panel.set_param_value(name, inst.params[name])
+            self.canvas.set_points(inst.params[name])
 
     def install_ai_engine(self) -> None:
         from .ai_dialogs import install_engine  # noqa: PLC0415

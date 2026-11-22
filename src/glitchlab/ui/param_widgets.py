@@ -24,7 +24,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..engine.params import (BITS, BOOL, CHOICE, COLOR, FILE, FLOAT, HEX, INT, MASK, POINTS, TEXT, Param,
+from ..engine.params import (BITS, BOOL, CHOICE, COLOR, DATA, FILE, FLOAT, HEX, INT, MASK, POINTS, TEXT, Param,
                              parse_hex_bytes)
 from .widgets import FlowLayout, shrinkable_combo
 
@@ -335,6 +335,13 @@ class BitsEditor(_Editor):
         self._block = False
 
 
+class HiddenEditor(_Editor):
+    """Stored data that has no control (e.g. a frozen flow state)."""
+
+    def set_value(self, v) -> None:
+        self._value = v
+
+
 class LongTextEditor(_Editor):
     """Multi-line text (prompts). Applied when focus leaves or with Ctrl+Enter."""
 
@@ -444,8 +451,11 @@ class MaskParamEditor(_Editor):
         row_w = QWidget()
         row = FlowLayout(row_w, hspacing=4, vspacing=3)
         self.buttons = {}
-        for tool, text, tip in (("brush", "Paint", "Paint the region on the preview"),
-                                ("rect", "▭", "Draw rectangles"), ("erase", "Erase", "Erase from the region")):
+        strokes = "strokes" in param.flags
+        tools = ((("brush", "Draw", "Draw strokes on the preview; the flow follows the drawing direction"),)
+                 if strokes else (("brush", "Paint", "Paint the region on the preview"),
+                                  ("rect", "▭", "Draw rectangles"), ("erase", "Erase", "Erase from the region")))
+        for tool, text, tip in tools:
             b = QToolButton()
             b.setText(text)
             b.setCheckable(True)
@@ -454,6 +464,8 @@ class MaskParamEditor(_Editor):
             self.buttons[tool] = b
             row.addWidget(b)
         self.invert = QCheckBox("Invert")
+        self.invert.setVisible(not strokes)
+        self._strokes = strokes
         clr = QToolButton()
         clr.setText("✕")
         clr.setToolTip("Clear the region (whole image)")
@@ -489,6 +501,9 @@ class MaskParamEditor(_Editor):
     def set_value(self, v) -> None:
         self._value = dict(v or {})
         n = len(self._value.get("shapes", []))
+        if self._strokes:
+            self.summary.setText(f"{n} stroke(s)." if n else "No strokes.")
+            return
         self.invert.blockSignals(True)
         self.invert.setChecked(bool(self._value.get("invert")))
         self.invert.blockSignals(False)
@@ -506,6 +521,8 @@ def make_editor(param: Param, parent=None) -> _Editor:
         return PointsEditor(param, parent)
     if k == MASK:
         return MaskParamEditor(param, parent)
+    if k == DATA:
+        return HiddenEditor(param, parent)
     if k in (FLOAT, INT):
         return NumberEditor(param, parent)
     if k == CHOICE:

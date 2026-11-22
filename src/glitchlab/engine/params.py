@@ -30,6 +30,8 @@ BITS = "bits"
 POINTS = "points"
 #: An effect-specific mask (same resolution-independent format as layer masks).
 MASK = "mask"
+#: Hidden structured data (JSON-compatible dict) saved with the effect, e.g. a frozen flow state.
+DATA = "data"
 MAX_POINTS = 64
 
 _HEX_PAIR = re.compile(r"^[0-9A-Fa-f]{2}$")
@@ -164,6 +166,15 @@ class Param:
             return "" if value is None else str(value)[:limit]
         if k == POINTS:
             return coerce_points(value)
+        if k == DATA:
+            import json  # noqa: PLC0415
+
+            if not isinstance(value, dict):
+                return {}
+            try:
+                return json.loads(json.dumps(value))
+            except (TypeError, ValueError):
+                return {}
         if k == MASK:
             from .model import MaskSpec  # noqa: PLC0415 - avoids an import cycle
 

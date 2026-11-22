@@ -12,8 +12,6 @@ import math
 import cv2
 import numpy as np
 
-from ..masks import rasterize_mask
-from ..model import MaskSpec
 from ..params import COLOR, MASK, POINTS, TEXT, Param, bparam, cparam, fparam, iparam
 from .ai_common import heat, hue_matrix, smooth_noise
 from .base import Effect, register
@@ -35,6 +33,9 @@ def _analysis():
 
 
 def _region(spec_dict: dict, w: int, h: int, source: np.ndarray) -> np.ndarray | None:
+    from ..masks import rasterize_mask  # noqa: PLC0415 - avoids an import cycle with engine.model
+    from ..model import MaskSpec  # noqa: PLC0415
+
     spec = MaskSpec.from_dict(spec_dict)
     return None if spec.is_identity() else rasterize_mask(spec, w, h, source)
 

@@ -47,6 +47,7 @@ class PreviewCanvas(QWidget):
     stroke_drawn = Signal(dict)
     files_dropped = Signal(list)
     point_clicked = Signal(float, float, int)   # normalised x, y, label (1 = object, 0 = exclude)
+    point_moved = Signal(int, float, float)     # index, normalised x, y (dragging an existing point)
     escape_pressed = Signal()
 
     def __init__(self, parent=None):
@@ -323,6 +324,16 @@ class PreviewCanvas(QWidget):
         self._points = list(points or [])
         self.update()
 
+    def _point_at(self, pos: QPointF):
+        if not self._points or not self._img_w:
+            return None
+        r = self._image_rect()
+        for i, pt in enumerate(self._points):
+            c = QPointF(r.left() + pt[0] * r.width(), r.top() + pt[1] * r.height())
+            if (c - pos).manhattanLength() < 12:
+                return i
+        return None
+
     def _paint_points(self, p: QPainter) -> None:
         if not self._points or not self._img_w:
             return
@@ -397,7 +408,10 @@ class PreviewCanvas(QWidget):
                 self._drag = ("stroke", [pos])
             elif self._tool == TOOL_POINTS:
                 x, y = self._to_norm(pos)
-                if 0.0 <= x <= 1.0 and 0.0 <= y <= 1.0:
+                hit = self._point_at(pos) if e.button() == Qt.LeftButton else None
+                if hit is not None:
+                    self._drag = ("pointdrag", hit)
+                elif 0.0 <= x <= 1.0 and 0.0 <= y <= 1.0:
                     label = 0 if (e.button() == Qt.RightButton or e.modifiers() & Qt.AltModifier) else 1
                     self.point_clicked.emit(float(x), float(y), label)
             self.update()
@@ -418,6 +432,13 @@ class PreviewCanvas(QWidget):
                 pts = self._drag[1]
                 if (pts[-1] - pos).manhattanLength() > 1.5:
                     pts.append(pos)
+            elif kind == "pointdrag":
+                x, y = self._to_norm(pos)
+                i = self._drag[1]
+                if 0 <= i < len(self._points):
+                    pt = list(self._points[i])
+                    pt[0], pt[1] = min(max(x, 0.0), 1.0), min(max(y, 0.0), 1.0)
+                    self._points[i] = pt
         elif self._compare and abs(pos.x() - self._split_x()) < 8:
             self.setCursor(Qt.SplitHCursor)
         else:
@@ -428,6 +449,13 @@ class PreviewCanvas(QWidget):
         if not self._drag:
             return
         kind = self._drag[0]
+        if kind == "pointdrag":
+            i = self._drag[1]
+            self._drag = None
+            if 0 <= i < len(self._points):
+                self.point_moved.emit(i, float(self._points[i][0]), float(self._points[i][1]))
+            self.update()
+            return
         if kind == "rect":
             p0, p1 = self._drag[1], e.position()
             x0, y0 = self._to_norm(p0)

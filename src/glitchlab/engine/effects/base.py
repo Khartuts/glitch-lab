@@ -116,6 +116,10 @@ class Effect:
         """Return human readable problems with the parameter set (empty = OK)."""
         return []
 
+    def disabled_params(self, p: dict[str, Any]) -> set[str]:
+        """Parameters that currently have no effect (the panel greys them out)."""
+        return set()
+
     def info(self, p: dict[str, Any]) -> str:
         """Optional live information shown under the controls (e.g. estimated work)."""
         return ""

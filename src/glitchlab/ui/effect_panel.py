@@ -202,6 +202,8 @@ class EffectPanel(QWidget):
         groups: dict[str, QFormLayout] = {}
         order: list[str] = []
         for prm in eff.params:
+            if prm.kind == "data":
+                continue
             g = prm.group or "Parameters"
             if g not in groups:
                 box = QGroupBox(g)
@@ -387,7 +389,15 @@ class EffectPanel(QWidget):
     def _update_visibility(self) -> None:
         if not self._uid:
             return
+        eff = getattr(self, "_effect", None)
+        disabled = set()
+        if eff is not None:
+            try:
+                disabled = eff.disabled_params(eff.coerce_params(self._values))
+            except Exception:  # pragma: no cover - informative only
+                disabled = set()
         for name, (label, holder) in self._rows.items():
+            holder.setEnabled(name not in disabled)
             prm = self._editors[name].param
             vis = True
             if prm.show_if:
