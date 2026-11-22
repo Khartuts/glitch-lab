@@ -43,6 +43,7 @@ CATEGORIES = (
     "Colour & Bits",
     "Frequency & Feedback",
     "Simulation",
+    "AI Experimental",
 )
 
 
@@ -65,6 +66,8 @@ class EffectContext:
     full_input: Callable[[], np.ndarray] | None = None
     #: Unique id of the effect instance (AI jobs are grouped by it).
     owner: str = ""
+    #: True when the effect may change transparency (supports_alpha and "Affect alpha" is on).
+    affect_alpha: bool = False
 
     def check(self) -> None:
         self.cancel.check()
@@ -213,7 +216,8 @@ def apply_effect(
         rng=np.random.default_rng(ss), seed_sequence=ss, scale=scale, full_size=full_size,
         cancel=cancel, services=services, warnings=warnings if warnings is not None else [],
         progress_cb=progress_cb, effect_label=inst.display_name(), input_key=input_key,
-        full_input=full_input if full_input is not None else (lambda: img), owner=inst.uid)
+        full_input=full_input if full_input is not None else (lambda: img), owner=inst.uid,
+        affect_alpha=bool(eff.supports_alpha and inst.affect_alpha))
     src = img
     if src.flags.writeable:
         src = img.view()
