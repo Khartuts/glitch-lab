@@ -163,22 +163,23 @@ def _scatter_layout(box: dict, plan: FontPlan, size: float, bw: float, bh: float
     return Layout(glyphs, [], size, bw, bh, False, [])
 
 
-def _box_transform(box: dict, W: int, H: int, cw: int, ch: int, margin: float) -> np.ndarray:
-    """Homography from canvas pixels to image pixels (rotation + optional perspective)."""
-    bw, bh = box["w"] * W, box["h"] * H
+def _canvas_to_image(box: dict, W: int, H: int, x0: float, y0: float, cw: float, ch: float) -> np.ndarray:
+    """Homography from canvas pixels to image pixels.
+
+    The canvas' top-left corner sits at image pixel (x0, y0) (integers) before
+    the box rotation / perspective, which pivot on the box centre; without
+    them the mapping is an exact whole-pixel translation."""
     cx, cy = box["x"] * W, box["y"] * H
-    hw, hh = bw / 2 + margin, bh / 2 + margin
-    hh_c = ch / 2  # canvas may be taller than the box (overflow)
-    top = hh_c - (bh / 2 + margin)
+    hbw, hbh = max(box["w"] * W / 2, 1e-3), max(box["h"] * H / 2, 1e-3)
     src = np.float32([[0, 0], [cw, 0], [cw, ch], [0, ch]])
+    pts = src + np.float32([x0, y0]) - np.float32([cx, cy])
     px, py = box["persp_x"], box["persp_y"]
-    # perspective: horizontal = top/bottom edge width ratio, vertical = left/right edge height ratio
-    corners = np.float32([[-hw * (1 - px), -hh_c * (1 - py)], [hw * (1 - px), -hh_c * (1 + py)],
-                          [hw * (1 + px), hh_c * (1 + py)], [-hw * (1 + px), hh_c * (1 - py)]])
-    corners[:, 1] += top * 0  # canvas is centred on the box
+    out = pts.copy()
+    out[:, 0] = pts[:, 0] * (1 + px * pts[:, 1] / hbh)
+    out[:, 1] = pts[:, 1] * (1 + py * pts[:, 0] / hbw)
     a = math.radians(box["rotation"])
     R = np.float32([[math.cos(a), -math.sin(a)], [math.sin(a), math.cos(a)]])
-    dst = corners @ R.T + np.float32([cx, cy])
+    dst = out @ R.T + np.float32([cx, cy])
     return cv2.getPerspectiveTransform(src, dst.astype(np.float32))
 
 
@@ -206,44 +207,60 @@ def render_box(box: dict, W: int, H: int, *, full_size: tuple[int, int], source:
     style = b["style"]
     sp = dict(b["style_params"].get(style, {}))
     k = float(b["intensity"])
-    size = max(1.0, b["size"] * H)
-    ss = 2 if size < 36 else 1
-    em = size * ss
+    # Layout is computed once in full-resolution pixels and scaled to the render size, so line breaks,
+    # fitting and positions are identical in the preview and the export.
+    Wf, Hf = full_size
+    f = H / float(Hf)
+    size_full = max(1.0, b["size"] * Hf)
+    ss = 2 if size_full * f < 36 else 1
+    fs = f * ss                                   # full-resolution pixels -> canvas pixels
     plan = _plan(b, info.path)
     condense = 1.0 - (sp.get("condense", 0.0) * min(k, 1.0) if style == "industrial" else 0.0)
     out = np.zeros((H, W, 4), np.float32)
-    if b["layout"] == "path" and len(b["path"]) >= 2:
-        pts = np.float32([[p[0] * W * ss, p[1] * H * ss] for p in b["path"]])
-        lay = layout_path(b["text"], plan, em, pts, tracking=b["tracking"], align=b["align"])
+    path_mode = b["layout"] == "path" and len(b["path"]) >= 2
+    if path_mode:
+        pts = np.float32([[p[0] * Wf, p[1] * Hf] for p in b["path"]])
+        lay = layout_path(b["text"], plan, size_full, pts, tracking=b["tracking"], align=b["align"])
+    elif b["layout"] == "scatter":
+        lay = _scatter_layout(b, plan, size_full, b["w"] * Wf, b["h"] * Hf)
+    else:
+        lay = layout_text(b["text"], plan, size_full, b["w"] * Wf, b["h"] * Hf, tracking=b["tracking"],
+                          line_spacing=b["line_spacing"], align=b["align"], wrap=b["wrap"],
+                          preserve_breaks=b["preserve_breaks"], fit=b["fit"], min_size=b["min_size"] * Hf,
+                          condense=condense)
+    em_full = lay.size
+    for g in lay.glyphs:
+        g.x, g.y, g.adv, g.size = g.x * fs, g.y * fs, g.adv * fs, g.size * fs
+    lay_h = lay.height * fs
+    em = em_full * fs
+    if path_mode:
         cw, ch = W * ss, H * ss
         ox = oy = 0.0
-        Hm = np.float32([[1.0 / ss, 0, 0], [0, 1.0 / ss, 0], [0, 0, 1]])
+        Hm = np.eye(3, dtype=np.float32)
         transform_canvas = False
+        canvas_em = (round(Wf / em_full, 3), round(Hf / em_full, 3))
     else:
-        bw, bh = b["w"] * W * ss, b["h"] * H * ss
-        if b["layout"] == "scatter":
-            lay = _scatter_layout(b, plan, em, bw, bh)
-        else:
-            lay = layout_text(b["text"], plan, em, bw, bh, tracking=b["tracking"], line_spacing=b["line_spacing"],
-                              align=b["align"], wrap=b["wrap"], preserve_breaks=b["preserve_breaks"], fit=b["fit"],
-                              min_size=b["min_size"] * H * ss, condense=condense)
-            em = lay.size
-        margin = em * (1.2 + 0.8 * min(k, 2.0)) + abs(b["shadow_dx"]) * em + abs(b["shadow_dy"]) * em
+        bw, bh = b["w"] * Wf * fs, b["h"] * Hf * fs
+        margin_em = 2.6 + abs(b["shadow_dx"]) + abs(b["shadow_dy"]) + b["shadow_blur"] * 2
         if style == "ghost":
-            margin += em * sp["echoes"] * sp["distance"] * k
-        content_h = max(bh, lay.height)
-        cw = int(math.ceil(bw + 2 * margin))
-        ch = int(math.ceil(content_h + 2 * margin + abs(content_h - bh)))
-        ox = margin
-        free = bh - lay.height
-        oy = margin + abs(content_h - bh) / 2 + {"middle": free / 2, "bottom": free}.get(b["valign"], 0.0)
-        if lay.height > bh:  # overflowing text starts at the top of the box and runs past its bottom
-            oy = margin + abs(content_h - bh) / 2
-        Hm = _box_transform(b, W, H, cw / ss, ch / ss, margin / ss)
-        Hm = Hm @ np.float32([[1.0 / ss, 0, 0], [0, 1.0 / ss, 0], [0, 0, 1]])
+            margin_em += sp["echoes"] * sp["distance"] * 2.0
+        margin = em * margin_em
+        cx_s, cy_s = b["x"] * W * ss, b["y"] * H * ss
+        bx0, by0 = cx_s - bw / 2, cy_s - bh / 2
+        free = bh - lay_h
+        voff = {"middle": free / 2, "bottom": free}.get(b["valign"], 0.0) if free > 0 else 0.0
+        over_h = max(0.0, lay_h - bh)   # overflowing lines run past the bottom of the box
+        canvas_em = (round(b["w"] * Wf / em_full + 2 * margin_em, 3),
+                     round(max(b["h"] * Hf, lay.height) / em_full + 2 * margin_em, 3))
+        ox_i = int(math.floor((bx0 - margin) / ss)) * ss     # canvas origin on the image pixel grid
+        oy_i = int(math.floor((by0 - margin) / ss)) * ss
+        ox, oy = bx0 - ox_i, by0 - oy_i + voff
+        cw = int(math.ceil((bx0 + bw + margin - ox_i) / ss)) * ss
+        ch = int(math.ceil((by0 + bh + over_h + margin - oy_i) / ss)) * ss
+        Hm = _canvas_to_image(b, W, H, ox_i / ss, oy_i / ss, cw / ss, ch / ss)
         transform_canvas = True
     report.overflow = report.overflow or lay.overflow
-    report.size_px = lay.size / ss
+    report.size_px = em_full
     report.warnings.extend(lay.warnings)
     if not lay.glyphs:
         return out
@@ -254,7 +271,8 @@ def render_box(box: dict, W: int, H: int, *, full_size: tuple[int, int], source:
     spec = MaskSpec.from_dict(b["distress"])
     if not spec.is_identity():
         m_img = rasterize_mask(spec, W, H, source if source is not None else np.zeros((H, W, 4), np.uint8))
-        dmg = cv2.warpPerspective(m_img, np.linalg.inv(Hm), (cw, ch), flags=cv2.INTER_LINEAR,
+        to_img = Hm.astype(np.float64) @ np.diag([1.0 / ss, 1.0 / ss, 1.0])
+        dmg = cv2.warpPerspective(m_img, np.linalg.inv(to_img), (cw, ch), flags=cv2.INTER_LINEAR,
                                   borderMode=cv2.BORDER_CONSTANT) if m_img is not None else None
     # style groups (per-word / per-line overrides)
     groups: dict[tuple[str, float], list[Glyph]] = {}
@@ -265,7 +283,6 @@ def render_box(box: dict, W: int, H: int, *, full_size: tuple[int, int], source:
                 st, inten = o["style"], o["intensity"]
         groups.setdefault((st, inten), []).append(g)
     F_all = raster.render(lay.glyphs)
-    canvas_em = (cw / em, ch / em)
     boxes = []
     for g in lay.glyphs:
         boxes.append((g.x + ox, g.y + oy - g.size * 0.75, g.x + ox + g.adv, g.y + oy + g.size * 0.05, g.ch, g.word,
@@ -278,7 +295,10 @@ def render_box(box: dict, W: int, H: int, *, full_size: tuple[int, int], source:
                         int(b["seed"]) * 31 + hash(st) % 1000, fill, outline, b["outline_width"] * em, dcol,
                         [bx for bx, g in zip(boxes, lay.glyphs) if g in gl], render=raster.render, glyphs=gl)
         si.seed = int(np.random.default_rng([b["seed"], STYLE_IDX[st]]).integers(0, 2**31 - 1))
-        styled = over(STYLES[st](si) if inten > 0 or st == "clean" else STYLES["clean"](si), styled)
+        res = STYLES[st](si) if inten > 0 or st == "clean" else STYLES["clean"](si)
+        if dmg is not None and st != "clean":  # outside the distress brush the letters stay clean
+            res = STYLES["clean"](si) * (1.0 - dmg[..., None]) + res * dmg[..., None]
+        styled = over(res, styled)
     if b["readability"] > 0 and style != "clean":
         styled = over(styled, layer(F_all, fill, float(b["readability"])))
     alpha_all = styled[..., 3]
@@ -287,9 +307,10 @@ def render_box(box: dict, W: int, H: int, *, full_size: tuple[int, int], source:
         pad = b["backing_padding"] * em
         plate = np.zeros((ch, cw), np.float32)
         if b["backing"] == "box" and transform_canvas:
-            x0, y0 = ox - pad * 0.5, oy - pad * 0.5
+            x0, y0 = ox - pad * 0.5, oy - voff - pad * 0.5
             cv2.rectangle(plate, (int(x0), int(y0)), (int(ox + b["w"] * W * ss + pad * 0.5),
-                                                      int(oy + max(lay.height, b["h"] * H * ss) + pad * 0.5)), 1.0, -1)
+                                                      int(oy - voff + max(lay_h, b["h"] * H * ss) + pad * 0.5)),
+                          1.0, -1)
         else:
             lines: dict[int, list[float]] = {}
             for bx in boxes:
@@ -308,8 +329,13 @@ def render_box(box: dict, W: int, H: int, *, full_size: tuple[int, int], source:
     if decorative and b["repeat"] != "none":
         full = over(full, _repetition(b, raster, lay, cw, ch, em, ox, oy, fill))
     # canvas -> image (premultiplied, so edges stay clean)
-    img = cv2.warpPerspective(full, Hm.astype(np.float64), (W, H), flags=cv2.INTER_LINEAR,
-                              borderMode=cv2.BORDER_CONSTANT) if (transform_canvas or ss != 1) else full
+    if ss > 1:  # premultiplied area averaging = correct anti-aliasing
+        full = cv2.resize(full, (cw // ss, ch // ss), interpolation=cv2.INTER_AREA)
+    if transform_canvas:
+        img = cv2.warpPerspective(full, Hm.astype(np.float64), (W, H), flags=cv2.INTER_LINEAR,
+                                  borderMode=cv2.BORDER_CONSTANT)
+    else:
+        img = full[:H, :W]
     img = img * np.float32(b["opacity"])
     if b["behind"]:
         occ = subject_mask

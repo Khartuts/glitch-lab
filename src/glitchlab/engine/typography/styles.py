@@ -108,15 +108,16 @@ def thrashed(si: StyleInput) -> np.ndarray:
     chip_n = noise(rng, sh, si.canvas_em, 0.05)
     chip = ((d < 0.03 + 0.07 * p["chipping"] * k) & (chip_n > 0.55 - 0.8 * p["chipping"] * k)).astype(np.float32)
     scratch = np.zeros(sh, np.uint8)
-    ys, xs = np.nonzero(F > 0.5)
-    if len(ys):
-        n = int(len(si.glyph_boxes) * 1.6 * p["abrasion"] * k) + 1
+    gb = [g for g in si.glyph_boxes if not g[4].isspace()]
+    if gb:
+        n = int(len(gb) * 1.6 * p["abrasion"] * k) + 1
         for _ in range(n):
-            j = int(rng.integers(0, len(ys)))
+            x0g, y0g, x1g, y1g = gb[int(rng.integers(0, len(gb)))][:4]
+            px, py = x0g + rng.random() * (x1g - x0g), y0g + rng.random() * (y1g - y0g)
             L = em * p["scratch_scale"] * rng.uniform(0.4, 1.8)
             a = math.radians(rng.normal(0, 18) + (90 if rng.random() < 0.15 else 0))
-            x0, y0 = xs[j] - math.cos(a) * L / 2, ys[j] - math.sin(a) * L / 2
-            x1, y1 = xs[j] + math.cos(a) * L / 2, ys[j] + math.sin(a) * L / 2
+            x0, y0 = px - math.cos(a) * L / 2, py - math.sin(a) * L / 2
+            x1, y1 = px + math.cos(a) * L / 2, py + math.sin(a) * L / 2
             th = max(1, int(round(em * rng.uniform(0.012, 0.045))))
             cv2.line(scratch, (int(x0), int(y0)), (int(x1), int(y1)), 255, th, cv2.LINE_AA)
     scr = scratch.astype(np.float32) / 255.0
@@ -208,8 +209,10 @@ def acid(si: StyleInput) -> np.ndarray:
     rng = np.random.default_rng(si.seed)
     F = si.F
     h, w = F.shape
-    gw, gh = flow.grid_shape(w, h, 256)
-    gem = em * gw / w                                       # em in grid pixels
+    cem_w, cem_h = si.canvas_em
+    gl = 256.0 / max(cem_w, cem_h)                          # grid pixels per em (scale independent)
+    gw, gh = max(16, int(round(cem_w * gl))), max(16, int(round(cem_h * gl)))
+    gem = gl                                                # em in grid pixels
     cell = p["vortex_scale"] * gem / max(gw, gh)
     vx, vy = flow.curl_noise(rng, gw, gh, max(cell, 0.01), 3, 0.5)
     ang = rng.uniform(-0.4, 0.4)
@@ -316,7 +319,10 @@ def xerox(si: StyleInput) -> np.ndarray:
         drift = p["drift"] * em * 0.35
         cur = shift(cur, rng.uniform(-1, 1) * drift, rng.uniform(-1, 1) * drift * 0.4)
         thr = p["threshold"] + 0.08 * noise(rng, sh, si.canvas_em, 1.5) * (g + 1) / gens
-        cur = np.clip((cur - thr) / 0.06 + 0.5, 0, 1)
+        # threshold relative to the local ink peak: small marks (accents, dots) survive like real toner
+        k_sz = max(3, int(em * 0.14) | 1)
+        peak = cv2.dilate(cur, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k_sz, k_sz)))
+        cur = np.clip((cur - thr * np.maximum(peak, 0.35)) / 0.06 + 0.5, 0, 1)
     if si.damage is not None:
         cur = F * (1 - si.damage) + cur * si.damage
     drop = noise(rng, sh, si.canvas_em, 0.02) + 0.6 * noise(rng, sh, si.canvas_em, 0.2)
@@ -325,7 +331,7 @@ def xerox(si: StyleInput) -> np.ndarray:
     # dust: tiny specks around the letters
     dust_n = noise(rng, sh, si.canvas_em, 0.01)
     near = cv2.GaussianBlur(F, (0, 0), em * 0.6)
-    dust = ((dust_n > 1.32 - 0.1 * k) & (near > 0.02)).astype(np.float32) * 0.9
+    dust = ((dust_n > 1.42 - 0.1 * k) & (near > 0.02)).astype(np.float32) * 0.9
     ink = {"black": np.float32([0.05, 0.05, 0.05]), "white": np.float32([0.96, 0.96, 0.94])}.get(p["ink"], si.fill)
     copy2 = shift(cur, p["drift"] * em * 1.2, p["drift"] * em * 0.5) * 0.35 * min(k, 1.0)
     out = layer(np.clip(np.maximum(body, dust * dm if isinstance(dm, float) else dust * dm), 0, 1), ink)
