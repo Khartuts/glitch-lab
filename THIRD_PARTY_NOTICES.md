@@ -15,6 +15,28 @@ each Python package; FFmpeg's licence is in `ffmpeg/FFMPEG_LICENSE.txt`).
 | FFmpeg (optional, bundled `ffmpeg.exe`) | 8.x LGPL build | LGPL-2.1-or-later | invoked as a separate program; never linked. See `docs/FFMPEG.md` for the source-code offer and obligations |
 | PyInstaller bootloader | 6.19.0 | GPL-2.0 with bootloader exception | the exception allows distributing the bootloader with any program |
 
+## Optional AI engine and models (downloaded on request, not in the installer)
+
+The AI effects use components that the program downloads only when you ask
+(AI › Install AI engine…, AI › Models…). They are stored in your user data
+folder, are never uploaded anywhere and run locally.
+
+| Component | Version / revision | Licence |
+|---|---|---|
+| PyTorch (CPU build for Windows) | 2.15.0 | BSD-3-Clause (bundles further permissive licences, see its `LICENSE` in the downloaded engine) |
+| Hugging Face transformers | 5.24.0 | Apache-2.0 |
+| Hugging Face diffusers | 0.43.0 | Apache-2.0 |
+| safetensors, tokenizers, huggingface_hub and their dependencies | see `src/glitchlab/ai/runtime_win_amd64.json` | Apache-2.0 / MIT / BSD (per package) |
+| SAM 2.1 Hiera Tiny (facebook/sam2.1-hiera-tiny) | de431c40 | Apache-2.0 |
+| Depth Anything V2 Small (depth-anything/Depth-Anything-V2-Small-hf) | 5426e4f0 | Apache-2.0 |
+| DINOv2 Small (facebook/dinov2-small) | ed25f3a3 | Apache-2.0 |
+| Stable Diffusion VAE ft-MSE (stabilityai/sd-vae-ft-mse) | 31f26fde | MIT |
+| Stable Diffusion 1.5 (stable-diffusion-v1-5/stable-diffusion-v1-5) | 451f4fe1 | CreativeML OpenRAIL-M (use restrictions apply to the user) |
+| Stable Diffusion 1.5 Inpainting (stable-diffusion-v1-5/stable-diffusion-inpainting) | 8a4288a7 | CreativeML OpenRAIL-M (use restrictions apply to the user) |
+
+The Stable Diffusion safety checker is not downloaded; you are responsible for
+using the generative effects within the OpenRAIL-M licence's use restrictions.
+
 If you distribute a build that contains a **GPL** FFmpeg build instead of an
 LGPL one, the combined distribution terms of that FFmpeg build apply to the
 `ffmpeg.exe` you ship (Glitch Lab only executes it as a separate process).

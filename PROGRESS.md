@@ -24,6 +24,18 @@ Dev venv: `.venv` (Python 3.13, `requirements-dev.txt`, package installed with `
   https://github.com/Khartuts/glitch-lab/releases/latest/download/GlitchLab-win64.zip
 * Build results/log: `build-status` branch.
 
+## Version 1.3.0 (local AI)
+
+* `glitchlab/ai/`: runtime (in-app engine download from a pinned wheel manifest made by
+  `packaging/ai_runtime/make_manifest.py`), models (pinned HF revisions + checksums), download, jobs
+  (worker thread, approvals, memory/disk cache), support (loaders, preprocessing from model configs),
+  analysis (SAM 2, depth, DINOv2, disagreement), generate (VAE, SD 1.5 inpaint/img2img/recursion), selftest.
+* Effects: engine/effects/ai_vision.py (4) and ai_generative.py (4); 12 AI presets (seeds 8001-9101).
+* Pipeline: scale-independent `ctx.input_key`, `ctx.full_input()`, `ctx.interactive`, failure codes.
+* UI: object points + per-effect masks on the canvas, AI box (models, estimate, Generate), AI menu,
+  models dialog, AI progress bar with cancel, AI device preference, project model revisions.
+* CLI: --ai-status, --ai-install-engine, --ai-download, --ai-selftest (used by Windows CI).
+
 ## Version 1.2.0
 
 * New category "Abstract & Style" (37 effects total): kaleidoscope (geometry.py), psychedelic_pop, dark_deco,

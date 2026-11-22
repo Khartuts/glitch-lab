@@ -146,6 +146,86 @@ on any image; try them on top of other effects or mix them with *Mix*.
   your own *Text*). Green, amber, cyan, white, red or the photo's own colours.
   Put **VHS & CRT** after it for an old monitor.
 
+## 4d. Local AI effects (new in 1.3, category "AI Experimental")
+
+Eight experimental effects use small neural networks that run **on this
+computer** (nothing is uploaded). They are optional:
+
+1. **AI › Install AI engine…** downloads PyTorch, transformers and diffusers
+   (about 165 MB, once). With an AMD Radeon or Intel graphics card the effects
+   run on the processor; an NVIDIA card is used when *Preferences › AI effects
+   run on* allows it and the engine supports it.
+2. **AI › Models…** lists every model with its size and licence. Download only
+   what you need — an effect that is missing a model says so and offers the
+   download. Models are pinned to fixed revisions and verified by checksum.
+3. Use the effects like any other. Their analysis (segmentation, depth,
+   features, generations) is computed once and cached, so changing styling
+   sliders is instant; the preview and the full-resolution export share it.
+   The **AI** bar under the render bar shows progress and has *Cancel AI*.
+
+Analysis effects (fast; run automatically):
+
+* **Semantic Faultlines** (SAM 2) — press *Pick on image* and click the object
+  (right-click excludes an area, *New object* starts another object). The
+  object's boundary splits into irregular concentric bands which crack into
+  fragments; each fragment moves, rotates and colour-separates on its own.
+  *Discontinuity* decides whether the outline shatters or forms a smooth halo.
+  *Skin slip* moves the inside of the object while its silhouette stays; the
+  interior, the boundary and the background each have their own setting.
+  Gaps can be transparent (needs *Affect alpha*), stretched edge pixels or a
+  colour. *Show › Object mask* checks the selection.
+* **Depth Mutiny** (Depth Anything V2) — the estimated depth is cut into slabs
+  that fold (*Accordion*), turn inside out or slide (*Avalanche*). *Inversion*
+  reverses the order of some slabs, *Collision* chooses correct or inverted
+  occlusion, and gaps are filled by stretching, mirrored fragments,
+  transparency or a colour. The depth is an artistic guess, not real geometry.
+* **Feature Contagion** (DINOv2) — patches are replaced by *real pixels* from
+  distant patches that look similar to the model (or deliberately dissimilar
+  ones), blended with feathered edges and optionally spreading for several
+  generations. An optional *donor image* supplies the patches instead (it is
+  saved inside projects). Feature similarity is not object recognition.
+* **Perception Breakdown** (DINOv2 or SAM 2) — the model looks at slightly
+  mirrored, zoomed, brighter and darker copies; where its answers disagree
+  (the *model disagreement* map — not a confidence measure) the image tears,
+  splits colour channels, repeats patches or sorts pixels. Show the map as an
+  overlay to see what drives it.
+
+Generative effects (Stable Diffusion; slow on a processor):
+
+These show an estimate of the work (number of denoising steps and time) and
+do **not** run on every preview change: press **Generate** in the effect panel
+(or tick *Generate automatically*). Exports always generate. Results are
+cached on disk, so re-composing them, reopening the project or exporting is
+immediate. Repeatability is aimed at the same computer and software; diffusion
+output can differ slightly between different machines.
+
+* **Latent Circuit Bending** (SD VAE, fairly fast) — damages the image's latent
+  tensor: tile swaps, offsets, channel permutation, amplification,
+  quantisation, seeded noise. *Show › Baseline* displays the undamaged VAE
+  reconstruction so you can tell normal reconstruction loss from intentional
+  damage. Paint a *Mutation region* to restrict it.
+* **Hallucination Scars** (SD 1.5 Inpainting) — cracks, broken scanlines,
+  contour ribbons or rectangular wounds reveal the material in your prompt,
+  e.g. "oxidised copper circuitry embedded in cracked porcelain", "black liquid
+  chrome with tangled luminous fibres" or "photocopied botanical tissue and
+  fractured glass". Outside the scars the photo stays exactly unchanged (unless
+  you add *Edge bleed* or *Displaced fragments*). Scars can follow depth edges
+  or object boundaries. If the model is missing, the effect reports it; it
+  never fakes the material procedurally.
+* **Counterfactual Residue** (SD 1.5) — two prompts ("frozen ceramic" /
+  "molten organic metal") produce two versions from the same noise; fragments
+  of both appear where they disagree (hard fragments, contour bands or
+  strips). *Generation strength* controls how far the versions go,
+  *Residue visibility* how much of them you see. An artistic comparison, not an
+  explanation of the model's reasoning.
+* **Recursive Misremembering** (SD 1.5) — the image is regenerated again and
+  again at low strength from its previous version, with an optional original
+  anchor, a prompt schedule (one prompt per line) and a protected region that
+  is restored after every generation. Selected generations are combined by
+  contour bands, a patch mosaic or disagreement masks. Generations are cached
+  one by one: cancelling keeps the finished ones and the next run continues.
+  *AI › Save intermediate generations…* writes them as PNG files.
+
 ## 5. Selective processing: layers and masks
 
 The default document has two layers: **Original** (bottom) and **Glitch**
@@ -182,7 +262,10 @@ Meltdown, Cathedral Ghosts, Lyric Injection, Tectonic Portrait, and (new in 1.2)
 Kaleidoscope Bloom, Acid Kaleidoscope, Psychedelic Pop Ad, Candy Pop Ad, Dark
 Deco, Emerald Deco Fan, Luminous Poster, Dawn Gradient Poster, Y2K Clear
 Plastic, Tangerine Jelly, Moody Corporate Futurism, Hackers, Mainframe ASCII
-and Hex Dump Portrait, plus a few simple ones. *Save stack as preset…* stores
+and Hex Dump Portrait, and (new in 1.3, need the local AI models) Faultline
+Portrait, Shattered Silhouette, Depth Riot, Accordion Street, Contagion Bloom,
+Dissimilar Invasion, Perception Static, Latent Rot, Copper Scars, Chrome
+Scanline Wounds, Ceramic vs Metal and Fading Memory, plus a few simple ones. *Save stack as preset…* stores
 your own (marked ★).
 
 ## 8. Projects

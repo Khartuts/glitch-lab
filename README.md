@@ -10,7 +10,7 @@ Everything runs locally and offline. No accounts, no cloud.
 [portable zip](https://github.com/Khartuts/glitch-lab/releases/latest/download/GlitchLab-win64.zip) ·
 [all releases](https://github.com/Khartuts/glitch-lab/releases)
 
-* 37 effects, including genuine data bending: HEX/byte corruption of BMP/PPM/JPEG files;
+* 45 effects, including genuine data bending: HEX/byte corruption of BMP/PPM/JPEG files;
   **Text & File Injection** (inject typed text or the bytes of any file - txt, wav, mp3 … - into
   BMP pixels, the BMP colour table, PPM, JPEG scan data or JPEG quantisation tables);
   **Sonify** (pixels → raw A-law audio → FFmpeg filters → pixels); **Audio File Bending**
@@ -20,6 +20,10 @@ Everything runs locally and offline. No accounts, no cloud.
 * Abstract & style: Kaleidoscope (wedges, hexagon/square mirror tiles, mirror halves), Psychedelic Pop,
   Dark Deco, Luminous Gradient, Y2K Clear Plastic, Corporate Futurism and Hacker Terminal
   (ASCII / code rain / hex dump), with 14 matching presets.
+* Optional local AI (downloaded on request, runs offline): Semantic Faultlines (SAM 2), Depth Mutiny
+  (Depth Anything V2), Feature Contagion and Perception Breakdown (DINOv2), Latent Circuit Bending
+  (SD VAE), Hallucination Scars, Counterfactual Residue and Recursive Misremembering (Stable
+  Diffusion 1.5), with 12 presets. See docs/USER_GUIDE.md section 4d.
 * Pixel sorting (thresholds or between edges), Voronoi Shatter Sorting, channel displacement,
   chromatic aberration, scanline tearing, VHS & CRT, block scrambling, feedback, bit-plane surgery,
   palette damage, compression decay, data reinterpretation, row/column drift, displacement maps,

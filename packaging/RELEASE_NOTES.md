@@ -11,6 +11,23 @@ No Python or other software is needed. FFmpeg (used by Sonify and for decoding M
 **First start:** the program is not code-signed, so Windows SmartScreen may show
 "Windows protected your PC". Click **More info → Run anyway**.
 
+## What's new in 1.3 — local AI effects
+
+* New category **AI Experimental** with eight effects that run on this computer:
+  **Semantic Faultlines** (SAM 2: objects you click come loose from their outlines),
+  **Depth Mutiny** (Depth Anything V2: depth slabs fold, invert and collide),
+  **Feature Contagion** (DINOv2: similar-looking regions infect each other, optional donor image),
+  **Perception Breakdown** (glitches where the model disagrees with itself),
+  **Latent Circuit Bending** (damage inside the Stable Diffusion VAE's latent space),
+  **Hallucination Scars** (SD 1.5 inpainting: tears reveal a material you describe),
+  **Counterfactual Residue** (two contradictory generations haunt the photo) and
+  **Recursive Misremembering** (the image is remembered again and again).
+* The AI engine (about 165 MB) and each model are **downloaded only when you ask** (AI menu), pinned and
+  checksum-verified; the installer itself stays small. Everything runs offline afterwards, on the processor
+  (AMD/Intel graphics) or an NVIDIA card where supported.
+* Twelve AI presets, object picking on the preview, per-effect painted masks, progress and *Cancel AI*,
+  cached results, and AI model revisions saved in projects.
+
 ## What's new in 1.2
 
 * New category **Abstract & Style** with seven effects:

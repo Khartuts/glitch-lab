@@ -1,4 +1,4 @@
-# Feature checklist — Glitch Lab 1.2.0
+# Feature checklist — Glitch Lab 1.3.0
 
 Legend
 
@@ -121,6 +121,27 @@ on a Windows 10/11 desktop has not been tested.
 | Y2K Clear Plastic (7 tints + custom; refraction, frost, gloss, rim, caustics, bubbles) | ✅ 👁 | |
 | Corporate Futurism (grade, accent, grid floor, haze, HUD brackets, glass panels, scan lines) | ✅ 👁 | |
 | Hacker Terminal (ASCII / code rain / hex dump; 5 character sets; phosphor colours or original) | ✅ 👁 | glyphs from Pillow's built-in font, identical on every platform |
+
+### Added in 1.3 (category "AI Experimental", optional local AI)
+
+| Feature | Status | Notes |
+|---|---|---|
+| AI engine download (pinned CPU PyTorch/transformers/diffusers wheels for Windows/Python 3.13, SHA-256 verified, unpacked into the user data folder, imported by the frozen program) | ✅ | `tests/test_ai_core.py` (synthetic wheels); real install verified by the Windows CI AI self-test |
+| Model registry pinned to Hugging Face commits; per-file size + SHA-256 / git-SHA1; resumable downloads with progress and cancel; identical files shared | ✅ | |
+| Clear errors for a missing engine / missing weights (with download offer), no procedural substitutes | ✅ | |
+| AI jobs on a dedicated worker; preview restarts wait instead of re-running inference; superseded jobs cancelled; *Cancel AI* | ✅ | |
+| Memory + disk cache of analyses and generations; preview and export share the full-resolution analysis | ✅ | |
+| Generative effects wait for *Generate* in previews (work estimate shown); exports always generate | ✅ | |
+| Semantic Faultlines (SAM 2.1 tiny; point prompts, multiple objects, SDF bands, fragments, skin slip, independent interior/boundary/background, gap fills) | ✅ 👁 | real-model tests when weights are present |
+| Depth Mutiny (Depth Anything V2 Small; robust normalisation, slabs, accordion / inside-out / avalanche, z-buffer splatting with correct or inverted occlusion, gap fills) | ✅ 👁 | |
+| Feature Contagion (DINOv2 small; special tokens excluded, exact patch mapping, chunked bounded nearest neighbours, feathered pixel transfer, generations, donor image) | ✅ 👁 | |
+| Perception Breakdown (DINOv2 or SAM 2 over flip/scale/exposure views, transforms undone, invalid borders excluded, masks matched; map overlay labelled "model disagreement") | ✅ 👁 | |
+| Latent Circuit Bending (SD VAE ft-MSE; posterior mean, conventions from the config, 6 mutations, region mask, baseline view) | ✅ 👁 | zero density reproduces the input exactly |
+| Hallucination Scars (SD 1.5 inpainting; 4 scar shapes, depth/object guides, material plate + inpainting, exact composite outside scars, edge/interior controls, bleed, fragments) | ✅ 👁 | |
+| Counterfactual Residue (SD 1.5 img2img pair with shared noise; colour + optional feature difference; 3 composition modes; displacement) | ✅ 👁 | identical prompts leave the photo unchanged |
+| Recursive Misremembering (bounded chain ≤ 400 steps, prompt and seed schedules, anchor, protected region, resumable per-generation cache, 3 combination modes, save generations) | ✅ 👁 | |
+| AI model revisions saved in projects (warning when they differ) | ✅ | |
+| NVIDIA/AMD GPU acceleration | ⚠️ | the downloadable engine is the CPU build; AMD Radeon is not accelerated on Windows |
 
 ## Selective processing & compositing
 

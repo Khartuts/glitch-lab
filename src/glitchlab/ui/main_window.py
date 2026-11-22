@@ -777,10 +777,14 @@ class MainWindow(QMainWindow):
             self.failures = new
             self.refresh_stack()
             self.effect_panel.set_status(self.failures.get(self.selected_uid, ""))
-        if failures:
-            first = failures[0]
+        real = [f for f in failures if f.code != "GenerationPending"]
+        if real:
+            first = real[0]
             self.canvas.set_error(f"⚠ {first.name} failed and was skipped: {first.message}"
-                                  + (f"  (+{len(failures) - 1} more)" if len(failures) > 1 else ""))
+                                  + (f"  (+{len(real) - 1} more)" if len(real) > 1 else ""))
+        elif failures:
+            self.canvas.set_error(f"⏸ {failures[0].name} is waiting: click 'Generate' in its panel to run the AI "
+                                  "generation.")
         else:
             self.canvas.set_error("")
 
@@ -796,10 +800,14 @@ class MainWindow(QMainWindow):
         for wmsg in res.warnings:
             log.warning(wmsg)
         cached = f" · {res.cache_hits} cached" if res.cache_hits else ""
-        kind = "error" if res.failures else ("warning" if res.warnings else "ok")
+        real = [f for f in res.failures if f.code != "GenerationPending"]
+        pending = [f for f in res.failures if f.code == "GenerationPending"]
+        kind = "error" if real else ("warning" if (res.warnings or pending) else "ok")
         text = f"Preview {pw}×{ph} in {res.elapsed:.2f} s{cached}"
-        if res.failures:
-            text += f" · {len(res.failures)} effect(s) failed: " + "; ".join(f"{f.name}: {f.message}" for f in res.failures)
+        if real:
+            text += f" · {len(real)} effect(s) failed: " + "; ".join(f"{f.name}: {f.message}" for f in real)
+        elif pending:
+            text += " · waiting for 'Generate': " + ", ".join(f.name for f in pending)
         elif res.warnings:
             text += " · " + res.warnings[-1]
         self.mode_label.setText("reduced preview" if reduced else "preview at full size")
