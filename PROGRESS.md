@@ -24,6 +24,17 @@ Dev venv: `.venv` (Python 3.13, `requirements-dev.txt`, package installed with `
   https://github.com/Khartuts/glitch-lab/releases/latest/download/GlitchLab-win64.zip
 * Build results/log: `build-status` branch.
 
+## Version 1.4.0 (Acid Flow + typography)
+
+* engine/flow.py (artistic flow advection), effects/acid.py (Acid Flow) + 5 presets (seeds 9201-9601).
+* engine/typography/: fonts (bundled DejaVu/STIX, system, imported, fallback), model (box/style schemas,
+  layout and style presets), layout (wrap/justify/fit/overflow/path), styles (8 recipes), render (full-res
+  layout scaled to render, pixel-aligned canvases, premultiplied compositing), extras (presets, export,
+  contact sheet). Layers: kind "text" with boxes; image layers can process the layers below.
+* UI: Text tab (text_panel.py), canvas text tool (move/resize/rotate, guides, snapping), point dragging,
+  stroke-only masks, freeze snapshots, text-only preview, typography export, missing-font substitution.
+* Tests: test_acid_flow.py, test_typography.py, test_ui_typography.py.
+
 ## Version 1.3.0 (local AI)
 
 * `glitchlab/ai/`: runtime (in-app engine download from a pinned wheel manifest made by

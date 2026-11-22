@@ -11,6 +11,18 @@ No Python or other software is needed. FFmpeg (used by Sonify and for decoding M
 **First start:** the program is not code-signed, so Windows SmartScreen may show
 "Windows protected your PC". Click **More info → Run anyway**.
 
+## What's new in 1.4 — Acid Flow and lyrics typography
+
+* **Acid Flow**: the photo liquefies into psychedelic flowing material — Contour Flow, Corrosive Melt,
+  Vortex Pools and the intense Liquid Acid mode; place and drag vortex centres, draw flow strokes, paint the
+  liquid area and protected areas, freeze a flow state; chromatic separation, colour ribbons, iridescence,
+  caustic highlights, liquid chrome. Presets: Liquid Acid, Mercury Skin, Toxic Ink, Slow Dissolve, Oil Spill.
+* **Lyrics / glitch typography**: text layers with editable text boxes (exact wording, punctuation, Unicode and
+  line breaks are kept), installed / bundled / imported fonts with Unicode fallback, wrapping, fit-to-box,
+  overflow warnings, guides, rotation and perspective, seven layout presets and eight distinct styles:
+  Thrashed, Industrial, Acid / Liquid Type, Rust / Oxidised, Xerox, Cut-and-Paste, Transmission Failure and
+  Ghost Carbon. Transparent typography export, typography presets, text behind the subject.
+
 ## What's new in 1.3 — local AI effects
 
 * New category **AI Experimental** with eight effects that run on this computer:

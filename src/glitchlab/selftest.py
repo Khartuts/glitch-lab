@@ -112,6 +112,26 @@ def run_selftest(services=None) -> tuple[bool, str]:
         assert (before == after).all(), "project did not reproduce the render"
 
     check("project save/load reproduces render", project_roundtrip)
+
+    def typography():
+        from .engine.model import Layer
+        from .engine.typography import fonts
+        from .engine.typography.model import STYLE_IDS, new_box, style_preset
+
+        bundled = fonts.REGISTRY.bundled()
+        assert len(bundled) >= 12, f"only {len(bundled)} bundled fonts found"
+        assert all(fonts.has_glyph(fonts.font_for_char(f.path, c), c) for f in bundled[:3] for c in "čćšžđ")
+        hashes = []
+        for st in STYLE_IDS:
+            doc = Document.new(1)
+            doc.layers.append(Layer(name="Text", kind="text",
+                                    boxes=[style_preset(st, new_box("Glitch čćšžđ\nLab", seed=3, size=0.15))]))
+            out = render_full(photo, doc, services=services).image
+            assert (out != photo).any(), st
+            hashes.append(image_hash(out)[:6])
+        return f"{len(bundled)} bundled fonts, {len(fonts.REGISTRY.all())} fonts in total, styles " + " ".join(hashes)
+
+    check("typography (fonts, Unicode, all styles)", typography)
     ok, ff = services.ffmpeg_status()
     lines.append("")
     lines.append(f"FFmpeg: {'OK' if ok else 'NOT AVAILABLE'} — {ff}")

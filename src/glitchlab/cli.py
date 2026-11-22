@@ -49,6 +49,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--contact-sheet", metavar="FILE", help="render the effect contact sheet to FILE")
     ap.add_argument("--selftest", metavar="REPORT", nargs="?", const="-", help="run engine self-test")
     ap.add_argument("--ffmpeg", metavar="PATH", help="FFmpeg executable to use")
+    ap.add_argument("--type-contact-sheet", metavar="FILE", help="render all typography styles on one sheet")
+    ap.add_argument("--text-only", action="store_true", help="with --render: export only the text layers "
+                    "(transparent PNG)")
     ap.add_argument("--ai-status", action="store_true", help="show the AI engine and model status")
     ap.add_argument("--ai-install-engine", action="store_true", help="download and install the AI engine")
     ap.add_argument("--ai-download", nargs="+", metavar="MODEL", help="download AI models (ids or 'all')")
@@ -98,6 +101,15 @@ def main(argv: list[str] | None = None) -> int:
         _print(f"Contact sheet written to {path} ({len(results)} effects, {len(failed)} not ok)")
         for r in failed:
             _print(f"  {r.status.upper()}: {r.name}: {r.message}")
+        return 0
+    if args.type_contact_sheet:
+        from .engine.typography.extras import type_contact_sheet
+        image = None
+        if args.render:
+            from .engine.image_io import load_image
+            image = load_image(args.render).rgba
+        path = type_contact_sheet(args.type_contact_sheet, image)
+        _print(f"Typography contact sheet written to {path}")
         return 0
     if args.render:
         return _render(args, services)
@@ -194,6 +206,14 @@ def _render(args, services) -> int:
             _print("Output must end in .png, .jpg or .webp")
             return 2
         t0 = time.perf_counter()
+        if args.text_only:
+            from .engine.typography.extras import export_typography_png
+            if fmt != "PNG":
+                _print("--text-only exports a transparent PNG; use an output ending in .png")
+                return 2
+            export_typography_png(src, doc, args.output, overwrite=args.overwrite)
+            _print(f"Wrote typography {args.output} in {time.perf_counter() - t0:.2f}s")
+            return 0
         rep = export_document(src, doc, args.output, ExportOptions(format=fmt, quality=args.quality,
                                                                     overwrite=args.overwrite),
                               source=info, write_recipe=args.write_recipe, services=services)

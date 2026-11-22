@@ -146,6 +146,83 @@ on any image; try them on top of other effects or mix them with *Mix*.
   your own *Text*). Green, amber, cyan, white, red or the photo's own colours.
   Put **VHS & CRT** after it for an old monitor.
 
+## 4e. Acid Flow (new in 1.4)
+
+The photograph liquefies into flowing, psychedelic material. *Behaviour*:
+**Contour Flow** (liquid travels along the subject's edges), **Corrosive
+Melt** (bright areas — or your *Liquid area* — dissolve into branching streams
+and drips), **Vortex Pools** (whirlpools pull details into spirals) and
+**Liquid Acid** (all at once, stronger). Controls are grouped into
+*Movement*, *Material* and *Colour*:
+
+* Movement: flow strength and direction, gravity, turbulence (scale, detail),
+  vortex count / size / rotation, contour attraction, melt threshold,
+  viscosity, advection steps. **Vortex centres** — *Pick on image*, left-click
+  = anticlockwise, right-click = clockwise, drag a centre to move it. **Flow
+  strokes** — draw on the image; the liquid follows the direction you drew.
+  **Liquid area** / **Protected area** — paint where the image may melt and
+  what must stay exactly unchanged (the edge is feathered outside it).
+  **Freeze flow** keeps the current flow while you adjust colour and material.
+* Material: source-detail retention (keeps the subject recognisable), fine
+  turbulence, liquid chrome, corrosive edges, caustic highlights.
+* Colour: original colours or optional neon colourisation (palettes),
+  colour ribbons (palette compression), chromatic separation along the flow,
+  iridescence.
+* Optional AI guidance (needs the local AI models): let the subject melt while
+  the background stays, let it spill outward, or vary the movement with depth.
+
+This is artistic flow advection, not a fluid simulation. Presets: **Liquid
+Acid**, **Mercury Skin**, **Toxic Ink**, **Slow Dissolve**, **Oil Spill**.
+
+## 4f. Lyrics / glitch typography (new in 1.4)
+
+1. Choose **Layer › Add text layer** (or *T＋* in Layers & Mask, or *Add text
+   layer* in the **Text** tab).
+2. Paste your lyrics into the text editor — the preview updates while you
+   type. The words, punctuation, Unicode letters (č ć š ž đ …) and your line
+   breaks are stored exactly as typed; nothing is ever rewritten or cut.
+3. Arrange: press *Move / resize on canvas* and drag the box (corners resize,
+   the round handle rotates; it snaps to the centre lines and the dashed safe
+   margins), or type exact values. Several text boxes can share a layer.
+4. Layout: font (installed fonts, the bundled DejaVu / STIX families, or
+   *Import…* a TTF/OTF), size, tracking, line spacing, alignment (left, centre,
+   right, justified), automatic wrapping, *Keep my line breaks*, *Fit text to
+   the box* with a readable minimum size, perspective. If the text does not
+   fit, a warning appears — the extra lines are drawn outside the box, never
+   dropped. Layout presets: small corner block, large central statement, tall
+   stacked lines, full-page lyric sheet, scattered fragments, repeated text
+   texture, words along a path (click the path points with *Pick on image*).
+5. Style — each one is its own processing recipe applied to the real glyphs:
+   **Thrashed** (scratches, ink loss, chipped edges, offset impressions),
+   **Industrial** (stencil cuts, uneven pressure, slices, label plate),
+   **Acid / Liquid Type** (flowing letters, chromatic outlines, iridescent
+   fill, liquid bridges), **Rust / Oxidised** (corrosion, pits, flaking,
+   metallic light; orange, dark iron or verdigris), **Xerox** (copy
+   generations, threshold drift, toner dropout, bleed, misaligned copies),
+   **Cut-and-Paste** (per-word fonts, papers, torn edges, rotations — lock the
+   fragments you like before rerolling), **Transmission Failure** (slices,
+   dropouts, pixel blocks, RGB impressions; decorative character substitution
+   is off by default and never changes your text) and **Ghost Carbon** (faded
+   echoes with blur and erosion). *Style intensity* 0 gives clean letters;
+   *Reroll* draws new damage; *Preserve readability* keeps a clean copy under
+   the damaged letters (an artistic control, not a guarantee); *Distress only
+   here* limits damage to a painted area; *Overrides* give single words or
+   lines their own style.
+6. Colours: fill, outline, damage colour, opacity, shadow and an optional
+   contrast backing behind the box or each line. The layer's blend mode
+   (normal, multiply, screen, difference, overlay) is in Layers & Mask.
+7. *Place behind the subject*: paint the subject mask by hand, or (with the
+   local AI models) click the subject; refine it with the brush.
+8. Effects added to a **text layer's** stack process only the text. To glitch
+   photo and text together, add an image layer above it and tick *Process the
+   layers below*.
+9. Export the finished picture as usual, or **File › Export typography
+   (transparent PNG)** for the lettering alone. *Save this look…* stores a
+   reusable typography preset. Projects keep the text, fonts (by name), layout,
+   styles, masks and seeds; a missing font is reported on opening with a choice
+   of replacement. Fonts are referenced, not embedded — check a font's licence
+   before distributing it.
+
 ## 4d. Local AI effects (new in 1.3, category "AI Experimental")
 
 Eight experimental effects use small neural networks that run **on this

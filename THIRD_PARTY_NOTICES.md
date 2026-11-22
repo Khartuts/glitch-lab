@@ -15,6 +15,16 @@ each Python package; FFmpeg's licence is in `ffmpeg/FFMPEG_LICENSE.txt`).
 | FFmpeg (optional, bundled `ffmpeg.exe`) | 8.x LGPL build | LGPL-2.1-or-later | invoked as a separate program; never linked. See `docs/FFMPEG.md` for the source-code offer and obligations |
 | PyInstaller bootloader | 6.19.0 | GPL-2.0 with bootloader exception | the exception allows distributing the bootloader with any program |
 
+## Bundled fonts
+
+| Font | Licence |
+|---|---|
+| DejaVu Sans, Sans Mono, Serif (12 styles) | Bitstream Vera Fonts licence + public-domain DejaVu changes (`resources/fonts/LICENSE_DEJAVU`) |
+| STIX General (4 styles) | SIL Open Font License 1.1 (`resources/fonts/LICENSE_STIX`) |
+
+Both licences allow redistribution with the program. Fonts you import are copied to your own data folder and are
+never embedded in projects.
+
 ## Optional AI engine and models (downloaded on request, not in the installer)
 
 The AI effects use components that the program downloads only when you ask

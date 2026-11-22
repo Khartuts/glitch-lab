@@ -10,7 +10,7 @@ Everything runs locally and offline. No accounts, no cloud.
 [portable zip](https://github.com/Khartuts/glitch-lab/releases/latest/download/GlitchLab-win64.zip) ·
 [all releases](https://github.com/Khartuts/glitch-lab/releases)
 
-* 45 effects, including genuine data bending: HEX/byte corruption of BMP/PPM/JPEG files;
+* 46 effects, including genuine data bending: HEX/byte corruption of BMP/PPM/JPEG files;
   **Text & File Injection** (inject typed text or the bytes of any file - txt, wav, mp3 … - into
   BMP pixels, the BMP colour table, PPM, JPEG scan data or JPEG quantisation tables);
   **Sonify** (pixels → raw A-law audio → FFmpeg filters → pixels); **Audio File Bending**
@@ -20,6 +20,9 @@ Everything runs locally and offline. No accounts, no cloud.
 * Abstract & style: Kaleidoscope (wedges, hexagon/square mirror tiles, mirror halves), Psychedelic Pop,
   Dark Deco, Luminous Gradient, Y2K Clear Plastic, Corporate Futurism and Hacker Terminal
   (ASCII / code rain / hex dump), with 14 matching presets.
+* Acid Flow: the image liquefies (contour flow, corrosive melt, vortex pools, Liquid Acid), with five presets.
+* Lyrics / glitch typography: editable text layers with eight styles (Thrashed, Industrial, Acid,
+  Rust, Xerox, Cut-and-Paste, Transmission Failure, Ghost Carbon) — see docs/typography_styles.png.
 * Optional local AI (downloaded on request, runs offline): Semantic Faultlines (SAM 2), Depth Mutiny
   (Depth Anything V2), Feature Contagion and Perception Breakdown (DINOv2), Latent Circuit Bending
   (SD VAE), Hallucination Scars, Counterfactual Residue and Recursive Misremembering (Stable

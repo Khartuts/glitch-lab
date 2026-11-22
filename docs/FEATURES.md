@@ -1,4 +1,4 @@
-# Feature checklist — Glitch Lab 1.3.0
+# Feature checklist — Glitch Lab 1.4.0
 
 Legend
 
@@ -121,6 +121,24 @@ on a Windows 10/11 desktop has not been tested.
 | Y2K Clear Plastic (7 tints + custom; refraction, frost, gloss, rim, caustics, bubbles) | ✅ 👁 | |
 | Corporate Futurism (grade, accent, grid floor, haze, HUD brackets, glass panels, scan lines) | ✅ 👁 | |
 | Hacker Terminal (ASCII / code rain / hex dump; 5 character sets; phosphor colours or original) | ✅ 👁 | glyphs from Pillow's built-in font, identical on every platform |
+
+### Added in 1.4
+
+| Feature | Status | Notes |
+|---|---|---|
+| Acid Flow: multiscale curl noise + contour + gravity + vortices + strokes, bounded semi-Lagrangian advection with exact map composition, viscosity (smoothing + damping) | ✅ 👁 | `tests/test_acid_flow.py` |
+| Contour Flow, Corrosive Melt, Vortex Pools, Liquid Acid | ✅ 👁 | |
+| Chromatic separation along the flow, colour ribbons, iridescence, caustic highlights, liquid chrome, corrosive edges, fine turbulence, detail retention; original or neon colours | ✅ 👁 | |
+| Liquid area and protected area masks (protected pixels exactly unchanged, feathered outside), vortex points with dragging, flow strokes, freeze | ✅ | |
+| Premultiplied-alpha sampling, explicit edge modes, bounded strip processing, no invalid pixels or borders | ✅ | |
+| Optional SAM 2 / depth guidance using cached inference | ✅ | |
+| Acid presets: Liquid Acid, Mercury Skin, Toxic Ink, Slow Dissolve, Oil Spill | ✅ 👁 | |
+| Text layers in the document; text-only effect stacks; image layers can process the layers below | ✅ | |
+| Fonts: bundled DejaVu (Bitstream Vera licence) and STIX (OFL), installed fonts, TTF/OTF import, per-glyph Unicode fallback, missing-font warning and substitution | ✅ | |
+| Layout: wrapping, kept line breaks, alignment incl. justified, vertical alignment, fit-to-box with minimum size, overflow reported (never truncated), path text, scattered fragments, repetition, rotation, perspective, guides and snapping | ✅ 👁 | |
+| Eight styles (Thrashed, Industrial, Acid / Liquid Type, Rust / Oxidised, Xerox, Cut-and-Paste, Transmission Failure, Ghost Carbon) with seeded, em-scaled damage | ✅ 👁 | `tests/test_typography.py`, `docs/typography_styles.png` |
+| Readability layer, intensity, reroll, fill/outline/damage colours, per-word/line overrides, distress brush, fragment locks, backing, shadow, behind-subject mask | ✅ | |
+| Typography presets, transparent typography PNG export, typography contact sheet | ✅ | |
 
 ### Added in 1.3 (category "AI Experimental", optional local AI)
 
