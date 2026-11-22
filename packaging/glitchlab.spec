@@ -34,18 +34,32 @@ _STDLIB_SKIP = {
 }
 
 
-def _stdlib_ok(name):
-    parts = name.split(".")
-    return not any(p in ("test", "tests", "idle_test") for p in parts)
+def _stdlib_modules():
+    """Every standard-library module, found by walking the stdlib folder (fast; no imports)."""
+    import sysconfig
+
+    root = sysconfig.get_paths()["stdlib"]
+    out = []
+    for name in sorted(sys.stdlib_module_names):
+        if name in _STDLIB_SKIP or name.startswith(("_test", "xx")):
+            continue
+        pkg = os.path.join(root, name)
+        if not os.path.isfile(os.path.join(pkg, "__init__.py")):
+            out.append(name)  # plain module, extension or built-in
+            continue
+        for here, dirs, files in os.walk(pkg):
+            rel = os.path.relpath(here, root).replace(os.sep, ".")
+            if any(part in ("test", "tests", "idle_test") for part in rel.split(".")):
+                dirs[:] = []
+                continue
+            dirs[:] = [d for d in dirs if os.path.isfile(os.path.join(here, d, "__init__.py"))]
+            for f in files:
+                if f.endswith(".py"):
+                    out.append(rel if f == "__init__.py" else f"{rel}.{f[:-3]}")
+    return out
 
 
-for _name in sorted(sys.stdlib_module_names):
-    if _name in _STDLIB_SKIP or _name.startswith(("_test", "xx")):
-        continue
-    try:
-        hidden += collect_submodules(_name, filter=_stdlib_ok) or []
-    except Exception:  # module not available on this platform
-        pass
+hidden += _stdlib_modules()
 
 excludes = [
     "tkinter", "pytest", "IPython",
