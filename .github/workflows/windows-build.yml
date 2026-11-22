@@ -8,7 +8,7 @@ name: windows-build
 # A short result + build log is also written to the "build-status" branch.
 on:
   push:
-    branches: [main]
+    branches: [main, ai-effects]
   workflow_dispatch:
 
 permissions:
@@ -21,7 +21,7 @@ concurrency:
 jobs:
   build:
     runs-on: windows-latest
-    timeout-minutes: 100
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v4
 
@@ -42,6 +42,18 @@ jobs:
           "build script exit code: $code"
           exit $code
 
+      - name: AI self-test (packaged program, real models)
+        id: ai
+        if: success()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          pwsh -NoProfile -ExecutionPolicy Bypass -File ./packaging/ai_selftest.ps1 -Dist dist -AIDir (Join-Path $env:RUNNER_TEMP "glitchlab-ai") 2>&1 |
+            Tee-Object -FilePath ai-log.txt
+          $code = $LASTEXITCODE
+          "AI self-test script exit code: $code"
+          exit $code
+
       - name: Upload build outputs
         if: always()
         uses: actions/upload-artifact@v4
@@ -54,11 +66,14 @@ jobs:
             dist/selftest-report.txt
             dist/contact_sheet.png
             dist/smoke.png
+            dist/ai-selftest-report.txt
+            dist/ai-results/*.png
             build-log.txt
+            ai-log.txt
 
       - name: Publish GitHub Release
         id: release
-        if: success()
+        if: success() && github.ref == 'refs/heads/main'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
@@ -91,11 +106,15 @@ jobs:
           @(
             "commit: $env:GITHUB_SHA",
             "build: ${{ steps.build.outcome }}",
+            "ai-selftest: ${{ steps.ai.outcome }}",
             "release: ${{ steps.release.outcome }}",
             "run: $env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
           ) | Set-Content (Join-Path $out "STATUS.txt")
           if (Test-Path build-log.txt) { Get-Content build-log.txt -Tail 6000 | Set-Content (Join-Path $out "build-log.txt") }
           if (Test-Path dist/selftest-report.txt) { Copy-Item dist/selftest-report.txt $out }
+          if (Test-Path ai-log.txt) { Get-Content ai-log.txt -Tail 3000 | Set-Content (Join-Path $out "ai-log.txt") }
+          if (Test-Path dist/ai-selftest-report.txt) { Copy-Item dist/ai-selftest-report.txt $out }
+          if (Test-Path dist/ai-results) { Copy-Item dist/ai-results (Join-Path $out "ai-results") -Recurse }
           Set-Location $out
           git init -q -b build-status
           git config user.name "github-actions[bot]"
