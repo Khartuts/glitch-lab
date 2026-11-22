@@ -1,0 +1,9 @@
+# AI engine downloaded by Glitch Lab on first use (Windows x64, Python 3.13, CPU PyTorch).
+# numpy and Pillow are NOT downloaded: the program already contains them.
+torch==2.15.0
+transformers==5.24.0
+diffusers==0.43.0
+safetensors
+# Resolve against the numpy/Pillow versions frozen into the program (pyproject.toml).
+numpy==2.3.5
+pillow==12.3.0

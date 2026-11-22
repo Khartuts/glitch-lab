@@ -20,10 +20,35 @@ ICON = os.path.join(SRC, "glitchlab", "resources", "glitchlab.ico")
 
 datas = [
     (os.path.join(SRC, "glitchlab", "resources"), os.path.join("glitchlab", "resources")),
+    # pinned model files and the AI-engine wheel manifest
+    (os.path.join(SRC, "glitchlab", "ai", "*.json"), os.path.join("glitchlab", "ai")),
 ]
 hidden = collect_submodules("glitchlab")
+
+# The optional AI engine (PyTorch, transformers, diffusers) is downloaded by the
+# program later and imported from outside the bundle, so it can only use the
+# standard-library modules that are frozen in now: include all of them.
+_STDLIB_SKIP = {
+    "tkinter", "_tkinter", "turtle", "turtledemo", "idlelib", "test", "lib2to3", "ensurepip", "venv",
+    "__phello__", "antigravity", "this", "curses", "_curses", "_curses_panel", "readline", "pty", "tty",
+}
+
+
+def _stdlib_ok(name):
+    parts = name.split(".")
+    return not any(p in ("test", "tests", "idle_test") for p in parts)
+
+
+for _name in sorted(sys.stdlib_module_names):
+    if _name in _STDLIB_SKIP or _name.startswith(("_test", "xx")):
+        continue
+    try:
+        hidden += collect_submodules(_name, filter=_stdlib_ok) or []
+    except Exception:  # module not available on this platform
+        pass
+
 excludes = [
-    "tkinter", "unittest", "pydoc_data", "pytest", "IPython",
+    "tkinter", "pytest", "IPython",
     # Qt modules Glitch Lab never imports (keeps the bundle smaller)
     "PySide6.QtWebEngineCore", "PySide6.QtWebEngineWidgets", "PySide6.QtWebEngineQuick", "PySide6.QtQml",
     "PySide6.QtQuick", "PySide6.Qt3DCore", "PySide6.QtMultimedia", "PySide6.QtCharts", "PySide6.QtDataVisualization",

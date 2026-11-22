@@ -123,6 +123,14 @@ def _file_signature(inst: EffectInstance) -> str:
     return "|".join(parts)
 
 
+def source_fingerprint(img: np.ndarray) -> str:
+    """Cheap, scale-independent identity of a full-resolution source image."""
+    h, w = img.shape[:2]
+    step = max(1, int(max(h, w) // 384))
+    sample = np.ascontiguousarray(img[::step, ::step])
+    return hashlib.sha1(f"{img.shape}|{step}".encode() + sample.tobytes()).hexdigest()
+
+
 def render_stack(
     source: np.ndarray,
     stack: list[EffectInstance],
@@ -139,8 +147,14 @@ def render_stack(
     warnings: list[str] | None = None,
     progress: ProgressFn | None = None,
     progress_range: tuple[float, float] = (0.0, 1.0),
+    full_source: np.ndarray | None = None,
 ) -> tuple[np.ndarray, int]:
-    """Render one effect stack from ``source``. Returns (image, cache_hits)."""
+    """Render one effect stack from ``source``. Returns (image, cache_hits).
+
+    ``full_source`` is the full-resolution original (when ``source`` is a
+    reduced preview copy); AI effects analyse their full-resolution input so
+    that preview and export share one analysis.
+    """
     failures = failures if failures is not None else []
     warnings = warnings if warnings is not None else []
     active = [e for e in stack if e.enabled and e.mix > 0]
@@ -153,6 +167,30 @@ def render_stack(
         h.update(e.cache_signature().encode())
         h.update(_file_signature(e).encode())
         keys.append(h.hexdigest())
+    # Scale-independent identities of every effect's input (for AI caches).
+    if full_source is None and scale == 1.0:
+        full_source = source
+    base_id = source_fingerprint(full_source) if full_source is not None else \
+        f"scaled:{scale:.6f}:{source_fingerprint(source)}"
+    ih = hashlib.sha1(f"{base_id}|{full_size}|{global_seed}".encode())
+    input_keys = []
+    for e in active:
+        input_keys.append(ih.hexdigest())
+        ih.update(e.cache_signature().encode())
+        ih.update(_file_signature(e).encode())
+
+    def full_input_of(i: int, current: np.ndarray):
+        if scale == 1.0 or full_source is None:
+            return lambda: current
+
+        def render_prefix():
+            out, _ = render_stack(full_source, active[:i], global_seed=global_seed, scale=1.0,
+                                  full_size=full_size, services=services, cancel=cancel, cache=cache,
+                                  cache_prefix=cache_prefix + ":ai-full", on_error=on_error, failures=[],
+                                  warnings=[], full_source=full_source)
+            return out
+        return render_prefix
+
     start_idx = 0
     img = source
     hits = 0
@@ -180,7 +218,8 @@ def render_stack(
         t0 = time.perf_counter()
         try:
             out = apply_effect(img, inst, global_seed=global_seed, scale=scale, full_size=full_size,
-                               cancel=cancel, services=services, warnings=warnings, progress_cb=sub_progress)
+                               cancel=cancel, services=services, warnings=warnings, progress_cb=sub_progress,
+                               input_key=input_keys[i], full_input=full_input_of(i, img))
         except Cancelled:
             raise
         except (EffectError, DependencyError) as exc:
@@ -223,6 +262,7 @@ def render_document(
     cache_prefix: str = "",
     on_error: str = "raise",
     progress: ProgressFn | None = None,
+    full_source: np.ndarray | None = None,
 ) -> RenderResult:
     """Render a whole document.
 
@@ -250,7 +290,7 @@ def render_document(
             source, layer.stack, global_seed=doc.global_seed, scale=scale, full_size=full_size,
             services=services, cancel=cancel, cache=cache, cache_prefix=cache_prefix, on_error=on_error,
             failures=failures, warnings=warnings, progress=progress,
-            progress_range=(li / nl * 0.95, (li + 1) / nl * 0.95))
+            progress_range=(li / nl * 0.95, (li + 1) / nl * 0.95), full_source=full_source)
         hits += hit
         images.append(img)
         modes.append(layer.blend)

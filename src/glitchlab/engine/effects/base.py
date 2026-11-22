@@ -57,6 +57,14 @@ class EffectContext:
     warnings: list[str] = field(default_factory=list)
     progress_cb: Callable[[float], None] | None = None
     effect_label: str = ""
+    #: Identifies this effect's input independently of the preview scale
+    #: (source + everything before it in the stack); used to cache AI analyses.
+    input_key: str | None = None
+    #: Returns this effect's input at full resolution (renders the stack prefix
+    #: at scale 1 when called during a reduced preview).
+    full_input: Callable[[], np.ndarray] | None = None
+    #: Unique id of the effect instance (AI jobs are grouped by it).
+    owner: str = ""
 
     def check(self) -> None:
         self.cancel.check()
@@ -90,6 +98,10 @@ class Effect:
     requires_ffmpeg: bool = False
     #: Short note shown when the reduced preview is only an approximation.
     preview_note: str = ""
+    #: Local AI models the effect needs (ids from glitchlab.ai.models).
+    ai_models: tuple[str, ...] = ()
+    #: Expensive (generative) effects: the Variation Grid leaves them alone.
+    heavy: bool = False
 
     # ------------------------------------------------------------------
     def process(self, img: np.ndarray, p: dict[str, Any], ctx: EffectContext) -> np.ndarray:
@@ -98,6 +110,10 @@ class Effect:
     def validate(self, p: dict[str, Any]) -> list[str]:
         """Return human readable problems with the parameter set (empty = OK)."""
         return []
+
+    def info(self, p: dict[str, Any]) -> str:
+        """Optional live information shown under the controls (e.g. estimated work)."""
+        return ""
 
     # ------------------------------------------------------------------
     def param(self, name: str) -> Param:
@@ -181,6 +197,8 @@ def apply_effect(
     services: "EngineServices | None" = None,
     warnings: list[str] | None = None,
     progress_cb: Callable[[float], None] | None = None,
+    input_key: str | None = None,
+    full_input: Callable[[], np.ndarray] | None = None,
 ) -> np.ndarray:
     """Apply one effect instance to ``img`` (uint8 RGBA). Returns a new array."""
     if not inst.enabled or inst.mix <= 0.0:
@@ -194,7 +212,8 @@ def apply_effect(
     ctx = EffectContext(
         rng=np.random.default_rng(ss), seed_sequence=ss, scale=scale, full_size=full_size,
         cancel=cancel, services=services, warnings=warnings if warnings is not None else [],
-        progress_cb=progress_cb, effect_label=inst.display_name())
+        progress_cb=progress_cb, effect_label=inst.display_name(), input_key=input_key,
+        full_input=full_input if full_input is not None else (lambda: img), owner=inst.uid)
     src = img
     if src.flags.writeable:
         src = img.view()

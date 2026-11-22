@@ -25,6 +25,12 @@ TEXT = "text"
 FILE = "file"
 COLOR = "color"
 BITS = "bits"
+#: Object selection points [[x, y, label, object], ...] in normalised image
+#: coordinates; label 1 = "this belongs to the object", 0 = "exclude".
+POINTS = "points"
+#: An effect-specific mask (same resolution-independent format as layer masks).
+MASK = "mask"
+MAX_POINTS = 64
 
 _HEX_PAIR = re.compile(r"^[0-9A-Fa-f]{2}$")
 _COLOR_RE = re.compile(r"^#?([0-9A-Fa-f]{6})$")
@@ -154,7 +160,15 @@ class Param:
         if k == CHOICE:
             return value if value in self.choice_values else self.default
         if k in (HEX, TEXT):
-            return "" if value is None else str(value)[:512]
+            limit = 4000 if "long" in self.flags else 512
+            return "" if value is None else str(value)[:limit]
+        if k == POINTS:
+            return coerce_points(value)
+        if k == MASK:
+            from .model import MaskSpec  # noqa: PLC0415 - avoids an import cycle
+
+            d = value if isinstance(value, dict) else {}
+            return MaskSpec.from_dict(d).to_dict()
         if k == FILE:
             return "" if not value else str(value)
         if k == COLOR:
@@ -235,6 +249,24 @@ class Param:
             "choices": [list(c) for c in self.choices],
             "spatial": self.spatial,
         }
+
+
+def coerce_points(value: Any) -> list[list]:
+    out: list[list] = []
+    if not isinstance(value, (list, tuple)):
+        return out
+    for pt in value[:MAX_POINTS]:
+        try:
+            x, y = float(pt[0]), float(pt[1])
+            label = 1 if (len(pt) < 3 or int(pt[2])) else 0
+            obj = int(pt[3]) if len(pt) > 3 else 1
+        except (TypeError, ValueError, IndexError):
+            continue
+        if not (math.isfinite(x) and math.isfinite(y)):
+            continue
+        out.append([round(min(max(x, 0.0), 1.0), 6), round(min(max(y, 0.0), 1.0), 6), label,
+                    int(min(max(obj, 1), 16))])
+    return out
 
 
 # Convenience constructors ---------------------------------------------------
