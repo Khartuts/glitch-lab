@@ -124,6 +124,10 @@ on a Windows 10/11 desktop has not been tested.
 
 ### Added in 1.4
 
+Verified on the Windows build machine ([run 45124476674](https://github.com/Khartuts/glitch-lab/actions/runs/45124476674)):
+743 tests passed (5 Linux/AI-only skipped); the packaged self-test passed Acid Flow, its presets and all typography
+styles with the bundled fonts (č ć š ž đ); the packaged AI self-test passed all eight AI effects.
+
 | Feature | Status | Notes |
 |---|---|---|
 | Acid Flow: multiscale curl noise + contour + gravity + vortices + strokes, bounded semi-Lagrangian advection with exact map composition, viscosity (smoothing + damping) | ✅ 👁 | `tests/test_acid_flow.py` |

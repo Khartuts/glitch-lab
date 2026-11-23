@@ -33,7 +33,10 @@ Dev venv: `.venv` (Python 3.13, `requirements-dev.txt`, package installed with `
   contact sheet). Layers: kind "text" with boxes; image layers can process the layers below.
 * UI: Text tab (text_panel.py), canvas text tool (move/resize/rotate, guides, snapping), point dragging,
   stroke-only masks, freeze snapshots, text-only preview, typography export, missing-font substitution.
-* Tests: test_acid_flow.py, test_typography.py, test_ui_typography.py.
+* Tests: test_acid_flow.py, test_typography.py, test_ui_typography.py. Linux: 746 passed; AI environment with
+  real models: 132 passed. Windows run 45124476674: 743 passed / 5 skipped, packaged self-test and AI self-test
+  PASSED, release v1.4.0 published (installer 113 MB, zip 173 MB). The first 1.4.0 run failed only because the
+  Text panel was too wide for the Windows fallback font (fixed: shorter labels, wrapping).
 
 ## Version 1.3.0 (local AI)
 
