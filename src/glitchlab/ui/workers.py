@@ -59,6 +59,8 @@ class TaskRunner(QObject):
                on_done=None, on_error=None, on_progress=None, on_cancel=None) -> Job:
         """Run ``fn(token, progress)`` on the lane's worker, cancelling its previous job."""
         self.cancel(lane)
+        if getattr(self, "_closed", False):  # a timer fired after the window closed: nothing to do
+            return Job(next(self._ids), lane)
         job = Job(next(self._ids), lane, on_done=on_done, on_error=on_error,
                   on_progress=on_progress, on_cancel=on_cancel)
         self._jobs[job.id] = job
@@ -132,6 +134,7 @@ class TaskRunner(QObject):
         return lane in self._current
 
     def shutdown(self) -> None:
+        self._closed = True
         self.cancel_all()
         for pool in self._pools.values():
             pool.shutdown(wait=False, cancel_futures=True)

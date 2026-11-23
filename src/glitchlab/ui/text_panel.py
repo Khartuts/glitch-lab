@@ -184,7 +184,7 @@ class TextPanel(QWidget):
             b.clicked.connect(lambda _=False, k=key: self.box_action.emit(k, self._uid))
             row.addWidget(b)
         move = QToolButton()
-        move.setText("Move / resize on canvas")
+        move.setText("Move / resize")
         move.setCheckable(True)
         move.setToolTip("Drag the box to move it, its corners to resize, the top handle to rotate. Guides show the "
                         "centre and the safe margins.")
@@ -234,6 +234,7 @@ class TextPanel(QWidget):
                 self._rows[p.name] = (ed, ed)
             elif p.name == "text":
                 lab = QLabel("Lyrics / text (kept exactly as typed)")
+                lab.setWordWrap(True)
                 fl.addRow(lab)
                 fl.addRow(ed)
                 self._rows[p.name] = (lab, ed)
@@ -251,7 +252,7 @@ class TextPanel(QWidget):
                 rr.clicked.connect(lambda: self.preset_requested.emit(self._uid, "reroll", ""))
                 fl.addRow("", rr)
             if p.name == "style":
-                look = QPushButton("Apply this style's look")
+                look = QPushButton("Apply style look")
                 look.setToolTip("Font and colours suggested for the style (your text and position stay)")
                 look.clicked.connect(lambda: self.preset_requested.emit(self._uid, "style", box["style"]))
                 fl.addRow("", look)
@@ -278,12 +279,14 @@ class TextPanel(QWidget):
         from .param_widgets import BoolEditor  # noqa: PLC0415
         from ..engine.params import bparam  # noqa: PLC0415
 
-        to = BoolEditor(bparam("text_only", "Text-only preview (hide the photo)", False))
+        to = BoolEditor(bparam("text_only", "Text only", False))
         to.set_value(self.text_only)
-        to.box.setText("Text-only preview (hide the photo)")
+        to.box.setText("Text-only preview")
+        to.box.setToolTip("Hide the photograph in the preview to judge the lettering alone.")
         to.value_changed.connect(lambda v, _f: self._text_only(bool(v)))
         out.addRow(to)
-        ex = QPushButton("Export typography (transparent PNG)…")
+        ex = QPushButton("Export text PNG…")
+        ex.setToolTip("Export only the typography as a transparent PNG")
         ex.clicked.connect(self.export_typography.emit)
         out.addRow(ex)
         lay.addStretch(1)
@@ -339,7 +342,7 @@ class TextPanel(QWidget):
             style.addItem(STYLE_NAMES[s], s)
         shrinkable_combo(style)
         add = QPushButton("Add")
-        rem = QPushButton("Remove selected")
+        rem = QPushButton("Remove")
         ovs = list(box["overrides"])
         add.clicked.connect(lambda: self.overrides_changed.emit(self._uid, ovs + [
             {"scope": scope.currentData(), "index": idx.value() - 1, "style": style.currentData(), "intensity": 1.0}]))
@@ -365,7 +368,8 @@ class TextPanel(QWidget):
         apply = QPushButton("Apply")
         apply.setEnabled(bool(saved))
         apply.clicked.connect(lambda: self.preset_requested.emit(self._uid, "saved", combo.currentData() or ""))
-        save = QPushButton("Save this look…")
+        save = QPushButton("Save look…")
+        save.setToolTip("Save this box's font, colours, layout and style as a reusable typography preset")
         save.clicked.connect(lambda: self.preset_requested.emit(self._uid, "save", ""))
         fl.addRow(combo)
         w = QWidget()
