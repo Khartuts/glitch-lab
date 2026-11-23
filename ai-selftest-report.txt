@@ -1,0 +1,18 @@
+Glitch Lab 1.4.0 AI self-test — Windows-2025Server-10.0.26100-SP0
+AI engine: Installed: torch 2.15.0, transformers 5.24.0, diffusers 0.43.0, safetensors 0.8.0
+PyTorch 2.15.0+cpu, device cpu, threads 2
+  model sam2: installed (facebook/sam2.1-hiera-tiny @ de431c4043)
+  model depth: installed (depth-anything/Depth-Anything-V2-Small-hf @ 5426e4f0f3)
+  model dinov2: installed (facebook/dinov2-small @ ed25f3a31f)
+  model vae: installed (stabilityai/sd-vae-ft-mse @ 31f26fdeee)
+  model sd15: installed (stable-diffusion-v1-5/stable-diffusion-v1-5 @ 451f4fe161)
+  model sd15_inpaint: installed (stable-diffusion-v1-5/stable-diffusion-inpainting @ 8a4288a760)
+PASS  semantic_faultlines  (10.3s, cached re-render 0.12s) b9ac7f0d4610
+PASS  depth_mutiny  (0.7s, cached re-render 0.02s) 2602c159c2a7
+PASS  feature_contagion  (0.9s, cached re-render 0.02s) 8302448aab31
+PASS  perception_breakdown  (2.0s, cached re-render 0.03s) e14be2e232f3
+PASS  latent_bending  (9.4s, cached re-render 0.01s) 0a3373847195
+PASS  hallucination_scars  (24.8s, cached re-render 0.02s) 70c4379da747
+PASS  counterfactual_residue  (25.0s, cached re-render 0.02s) 70889ce8979c
+PASS  recursive_misremembering  (25.6s, cached re-render 0.02s) c70c69e05f94
+RESULT: PASSED
